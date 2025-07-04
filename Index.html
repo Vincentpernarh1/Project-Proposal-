@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Project Proposal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #3B82F6;
+            --primary-blue-dark: #2563EB;
+            --light-blue-bg: #EFF6FF;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --bg-light: #F9FAFB;
+            --border-color: #E5E7EB;
+            --card-bg: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-dark);
+        }
+
+        /* --- Sidebar & Layout --- */
+        #app-container {
+            display: flex;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 260px;
+            background-color: var(--card-bg);
+            border-right: 1px solid var(--border-color);
+            transition: transform 0.3s ease-in-out;
+            z-index: 40;
+        }
+        
+        #main-content-wrapper {
+            width: 100%;
+            margin-left: 260px;
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        body.sidebar-collapsed .sidebar {
+            transform: translateX(-100%);
+        }
+
+        body.sidebar-collapsed #main-content-wrapper {
+            margin-left: 0;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            font-weight: 500;
+            border-radius: 8px;
+            color: var(--text-light);
+            transition: all 0.2s ease-in-out;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-link .nav-icon {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+
+        .nav-link:hover {
+            background-color: var(--light-blue-bg);
+            color: var(--primary-blue-dark);
+        }
+
+        .nav-link.active {
+            background-color: var(--light-blue-bg);
+            color: var(--primary-blue-dark);
+            font-weight: 600;
+            border-left-color: var(--primary-blue);
+        }
+        
+        /* --- Modern Design Elements --- */
+        .page-header {
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
+        }
+
+        h2.section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            border-bottom: 2px solid var(--primary-blue);
+            padding-bottom: 0.75rem;
+            margin-bottom: 2rem;
+        }
+        
+        .input-field {
+            background-color: #F9FAFB;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px var(--light-blue-bg);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px -1px rgb(0 0 0 / 0.15), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--primary-blue-dark);
+        }
+        
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #1f2937;
+        }
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #d1d5db;
+        }
+
+        .btn-ai {
+            background-image: linear-gradient(to right, #6D28D9, #9333EA);
+            color: white;
+        }
+        .btn-ai:hover:not(:disabled) {
+            background-image: linear-gradient(to right, #5B21B6, #7E22CE);
+        }
+        
+        .content-section {
+            scroll-margin-top: 8rem;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 300px; /* Reduced height */
+        }
+
+        input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; width: 100%; }
+        input[type="range"]::-webkit-slider-runnable-track { background: #e5e7eb; height: 0.5rem; border-radius: 0.5rem; }
+        input[type="range"]::-moz-range-track { background: #e5e7eb; height: 0.5rem; border-radius: 0.5rem; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; margin-top: -4px; background-color: var(--primary-blue); height: 1.25rem; width: 1.25rem; border-radius: 9999px; }
+        input[type="range"]::-moz-range-thumb { border: none; border-radius: 9999px; background-color: var(--primary-blue); height: 1.25rem; width: 1.25rem; }
+
+
+        /* --- Print Styles --- */
+        @media print {
+            body { background-color: white !important; }
+            #main-content-wrapper { margin-left: 0 !important; padding: 0 !important; }
+            .no-print, nav, .floating-buttons { display: none !important; }
+            .page-header { position: static !important; }
+            .card { box-shadow: none !important; border: 1px solid #ccc !important; page-break-inside: avoid; }
+            textarea { height: auto !important; overflow: visible !important; border: none !important; resize: none; padding: 0 !important; background-color: white !important; color: black !important; }
+            .comment-container { display: block !important; }
+            .tool-controls { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+<div id="app-container">
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar p-4 no-print">
+        <div class="mb-10 flex items-center gap-3 px-2">
+            <div class="bg-blue-500 p-2 rounded-lg">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </div>
+            <h1 class="font-bold text-xl text-gray-800" data-lang-key="proposal_title_nav">Project Proposal</h1>
+        </div>
+        <ul id="desktop-nav-links" class="space-y-2">
+            <li><a href="#overview" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg><span data-lang-key="nav_overview">Overview</span></a></li>
+            <li><a href="#diagnosis" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"></path><path d="M12 12L16 16"></path><path d="M12 6v6"></path></svg><span data-lang-key="nav_diagnosis">Diagnosis</span></a></li>
+            <li><a href="#solution" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg><span data-lang-key="nav_solution">Solution Analysis</span></a></li>
+            <li><a href="#visuals" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg><span data-lang-key="nav_visuals">Visuals</span></a></li>
+            <li><a href="#viability" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg><span data-lang-key="nav_viability">Viability</span></a></li>
+            <li><a href="#tools" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"></path></svg><span data-lang-key="nav_tools">Tool Selection</span></a></li>
+            <li><a href="#plan" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg><span data-lang-key="nav_plan">Project Plan</span></a></li>
+            <li><a href="#sipoc" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg><span data-lang-key="nav_sipoc">SIPOC Diagram</span></a></li>
+            <li><a href="#rasci" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg><span data-lang-key="nav_rasci">RASCI Matrix</span></a></li>
+            <li><a href="#cost" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg><span data-lang-key="nav_cost">Cost & Timeline</span></a></li>
+            <li><a href="#terms" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span data-lang-key="nav_terms">Terms</span></a></li>
+            <li><a href="#signoff" class="nav-link"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 14.66V20a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon></svg><span data-lang-key="nav_signoff">Sign-Off</span></a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content Wrapper -->
+    <div id="main-content-wrapper" class="w-full">
+        <!-- Page Header -->
+        <header class="page-header sticky top-0 z-20 p-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button id="sidebar-toggle" class="p-2 rounded-md text-gray-500 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 no-print">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <h2 class="text-xl font-bold text-gray-800 m-0 p-0 border-none hidden md:block" data-lang-key="main_header_title">Project Proposal Document</h2>
+            </div>
+            <div class="flex items-center gap-4">
+                <img src="https://www.dhl.com/content/dam/dhl/global/core/images/logos/dhl-logo.svg" alt="DHL Logo" class="h-8 md:h-10" onerror="this.style.display='none'">
+                <div class="no-print">
+                    <select id="language-switcher" class="input-field py-1 text-sm">
+                        <option value="en">English</option>
+                        <option value="pt">Português</option>
+                    </select>
+                </div>
+            </div>
+        </header>
+
+        <main id="main-content" class="p-4 md:p-8">
+            <!-- Mobile Nav Dropdown -->
+            <div class="md:hidden mb-6 no-print">
+                <select id="mobile-nav-select" class="w-full input-field">
+                    <!-- Options populated by JS -->
+                </select>
+            </div>
+
+            <!-- Section 1: Overview -->
+            <section id="overview" class="content-section card mb-10">
+                <div class="flex justify-between items-start">
+                    <h2 class="section-title" data-lang-key="overview_title">1. Project Overview</h2>
+                    <button id="generate-summary-btn" class="btn btn-ai text-sm py-2 px-3 no-print -mt-2 gap-2" data-lang-key="generate_summary_btn">✨ Generate Summary</button>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <label for="project-title-input" class="font-medium text-gray-700" data-lang-key="overview_project_title_label">Project Title</label>
+                        <input id="project-title-input" type="text" data-lang-key="overview_project_title_placeholder" placeholder="Project Title" class="input-field text-lg font-semibold mt-1">
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                           <label for="client-name-input" class="font-medium text-gray-700" data-lang-key="overview_client_name_label">Client Name</label>
+                           <input id="client-name-input" type="text" data-lang-key="overview_client_name_placeholder" placeholder="Client Name" class="input-field mt-1">
+                        </div>
+                        <div>
+                           <label for="project-date" class="font-medium text-gray-700" data-lang-key="overview_date_label">Date</label>
+                           <input id="project-date" type="date" value="2025-07-04" class="input-field mt-1">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="executive-summary-textarea" class="font-medium text-gray-700" data-lang-key="overview_summary_label">Executive Summary</label>
+                        <textarea id="executive-summary-textarea" class="input-field h-32 mt-1" data-lang-key="overview_summary_placeholder" placeholder="Executive Summary: A brief, high-level summary of the project..."></textarea>
+                    </div>
+                    <p id="summary-ai-status" class="text-sm text-gray-500 mt-2 h-4"></p>
+                </div>
+            </section>
+            
+            <!-- Section 2: Diagnosis -->
+            <section id="diagnosis" class="content-section card mb-10">
+                <h2 class="section-title" data-lang-key="diagnosis_title">2. Client Needs and Problem Diagnosis</h2>
+                <div class="space-y-6">
+                    <div>
+                        <label for="client-request-textarea" class="font-bold text-gray-700 block mb-2" data-lang-key="diagnosis_request_label">Initial Client Request</label>
+                        <p class="text-sm text-gray-500 mb-2 no-print" data-lang-key="diagnosis_request_desc">Describe the problem or need as it was initially presented by the client.</p>
+                        <textarea id="client-request-textarea" class="input-field h-24" data-lang-key="diagnosis_request_placeholder" placeholder="Client's pain points, goals..."></textarea>
+                    </div>
+                    <div>
+                        <label for="in-depth-diagnosis-textarea" class="font-bold text-gray-700 block mb-2" data-lang-key="diagnosis_in_depth_label">In-Depth Diagnosis</label>
+                        <p class="text-sm text-gray-500 mb-2 no-print" data-lang-key="diagnosis_in_depth_desc">Detail your analysis of the client's situation and root causes.</p>
+                        <textarea id="in-depth-diagnosis-textarea" class="input-field h-24" data-lang-key="diagnosis_in_depth_placeholder" placeholder="Findings from interviews, data analysis..."></textarea>
+                    </div>
+                </section>
+
+            <!-- Section 3: Solution Analysis -->
+            <section id="solution" class="content-section card mb-10">
+                <h2 class="section-title" data-lang-key="solution_title">3. System & Solution Analysis</h2>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="font-semibold text-lg mb-2" data-lang-key="solution_current_system">The Current System (As-Is)</h3>
+                        <p class="text-sm text-gray-500 mb-2 no-print" data-lang-key="solution_current_system_desc">Describe the current workflow and its pain points.</p>
+                        <textarea id="current-system-textarea" class="input-field h-32" data-lang-key="solution_current_system_placeholder" placeholder="Current process description..."></textarea>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-semibold text-lg" data-lang-key="solution_proposed_system">The Proposed System (To-Be)</h3>
+                            <button id="brainstorm-solution-btn" class="btn btn-ai text-sm py-1 px-3 no-print gap-2" data-lang-key="brainstorm_btn">✨ Brainstorm</button>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-2 no-print" data-lang-key="solution_proposed_system_desc">Describe the proposed solution and its benefits.</p>
+                        <textarea id="proposed-system-textarea" class="input-field h-32" data-lang-key="solution_proposed_system_placeholder" placeholder="Proposed solution benefits..."></textarea>
+                        <p id="solution-ai-status" class="text-sm text-gray-500 mt-2 h-4"></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 4: Visuals & Diagrams -->
+            <section id="visuals" class="content-section card mb-10">
+                <h2 class="section-title" data-lang-key="visuals_title">4. Visuals & Diagrams</h2>
+                <p class="text-sm text-gray-500 mb-4 no-print" data-lang-key="visuals_desc">Add any relevant images, flowcharts, or architecture diagrams to support your proposal.</p>
+                <div id="image-drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
+                    <div id="image-preview-container" class="flex flex-wrap gap-4 justify-center">
+                          <p id="image-placeholder" class="text-gray-500" data-lang-key="visuals_placeholder">Drag & drop images here, or click to select files.</p>
+                    </div>
+                     <input type="file" id="image-upload-input" class="hidden" accept="image/*" multiple>
+                </div>
+            </section>
+
+            <!-- Section 5: Viability -->
+            <section id="viability" class="content-section card mb-10">
+                <h2 class="section-title" data-lang-key="viability_title">5. Viability and Justification</h2>
+                <div class="space-y-6">
+                     <div>
+                        <label for="viability-case-studies" class="font-medium text-gray-700 block mb-2" data-lang-key="viability_case_studies_label">Case Studies & Precedents</label>
+                        <p class="text-sm text-gray-500 mb-2 no-print" data-lang-key="viability_case_studies_desc">Provide 1-2 brief examples of similar problems solved.</p>
+                        <textarea id="viability-case-studies" class="input-field h-24" data-lang-key="viability_case_studies_placeholder" placeholder="e.g., 'A similar data integration challenge at Company X...'"></textarea>
+                    </div>
+                    <div>
+                        <label for="viability-assessment" class="font-medium text-gray-700 block mb-2" data-lang-key="viability_assessment_label">Viability Assessment</label>
+                        <p class="text-sm text-gray-500 mb-2 no-print" data-lang-key="viability_assessment_desc">Assess technical, operational, and economic viability.</p>
+                        <textarea id="viability-assessment" class="input-field h-24" data-lang-key="viability_assessment_placeholder" placeholder="Is the technology mature? Does the cost justify the benefit?"></textarea>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section 6: Tool Selection -->
+            <section id="tools" class="content-section card mb-10">
+                <h2 class="section-title" data-lang-key="tools_title">6. Tool Selection and Technical Specifications</h2>
+                 <div class="grid md:grid-cols-2 gap-12 items-start">
+                    <div class="tool-controls">
+                        <h3 class="font-semibold text-lg mb-4" data-lang-key="tools_evaluation_label">Tool Evaluation</h3>
+                        <div id="tool-evaluation-list" class="space-y-4 mb-6"></div>
+                        <button id="show-add-tool-form-btn" class="btn btn-secondary w-full no-print">Add New Tool</button>
+                        <div id="add-tool-form" class="bg-gray-50 p-4 rounded-lg border mt-4 hidden no-print">
+                            <h4 class="font-semibold mb-3">Add New Tool</h4>
+                            <div class="space-y-3">
+                                <input type="text" id="new-tool-name" placeholder="Tool Name" class="input-field">
+                                <input type="number" id="new-tool-score" placeholder="Suitability Score (0-100)" class="input-field">
+                                <button id="add-tool-btn" class="btn btn-primary w-full">Add Tool</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="toolChart"></canvas>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section 7: Project Plan -->
+            <section id="plan" class="content-section card mb-10">
+                <h2 class="section-title" data-lang-key="plan_title">7. Project Plan and Deliverables</h2>
+                <div class="mb-6">
+                    <h3 class="font-semibold text-lg mb-2" data-lang-key="plan_timeline_label">Interactive Project Timeline</h3>
+                    <p class="text-sm text-gray-500 mb-4 no-print" data-lang-key="plan_timeline_desc">Click on a phase to see details and add comments.</p>
+                    <div id="timeline-container" class="relative w-full py-8 px-4"></div>
+                    <div id="phase-details" class="mt-4 p-4 bg-gray-50 rounded-lg border hidden"></div>
+                </div>
+                <div class="mb-6 no-print">
+                     <div class="flex justify-between items-center mb-2">
+                        <h3 class="font-semibold text-lg" data-lang-key="plan_ai_label">AI-Suggested Project Plan</h3>
+                        <button id="suggest-plan-btn" class="btn btn-ai text-sm py-1 px-3 gap-2" data-lang-key="suggest_plan_btn">✨ Suggest Plan</button>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-2 no-print" data-lang-key="plan_ai_desc">Use the proposed solution to generate a draft project plan.</p>
+                    <textarea id="ai-plan-textarea" class="input-field h-40" data-lang-key="plan_ai_placeholder" placeholder="AI-generated plan will appear here..."></textarea>
+                    <p id="plan-ai-status" class="text-sm text-gray-500 mt-2 h-4"></p>
+                </div>
+                <div class="mb-6">
+                    <button id="toggle-deliverables-btn" class="btn btn-secondary w-full no-print" data-lang-key="plan_manage_deliverables_btn">Manage Deliverables Checklist</button>
+                    <div id="manage-deliverables-container" class="hidden mt-4 border-t pt-4">
+                        <h3 class="font-semibold text-lg mb-2" data-lang-key="plan_checklist_label">Deliverables Checklist</h3>
+                        <p class="text-sm text-gray-500 mb-4 no-print" data-lang-key="plan_checklist_desc">Check off the key deliverables as they are completed.</p>
+                        <div id="deliverables-checklist" class="space-y-3"></div>
+                        <div class="flex gap-2 mt-4 no-print">
+                            <input type="text" id="new-deliverable-input" class="input-field" data-lang-key="plan_add_deliverable_placeholder" placeholder="Add a new deliverable...">
+                            <button id="add-deliverable-btn" class="btn btn-secondary" data-lang-key="plan_add_btn">Add</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Section SIPOC -->
+            <section id="sipoc" class="content-section card mb-10">
+                <h2 class="section-title" data-lang-key="sipoc_title">SIPOC Diagram</h2>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <!-- SIPOC Columns will be generated by JS -->
+                </div>
+            </section>
+
+            <!-- Section RASCI -->
+            <section id="rasci" class="content-section card mb-10">
+                <h2 class="section-title" data-lang-key="rasci_title">RASCI Matrix</h2>
+                <div class="overflow-x-auto">
+                    <table id="rasci-table" class="w-full text-sm text-left text-gray-500">
+                        <!-- RASCI Table content will be generated by JS -->
+                    </table>
+                </div>
+                <div class="flex gap-4 mt-4 no-print">
+                    <input type="text" id="new-rasci-task" placeholder="New Task/Deliverable" class="input-field">
+                    <button id="add-rasci-task-btn" class="btn btn-secondary">Add Task</button>
+                </div>
+                <div class="flex gap-4 mt-4 no-print">
+                    <input type="text" id="new-rasci-role" placeholder="New Role" class="input-field">
+                    <button id="add-rasci-role-btn" class="btn btn-secondary">Add Role</button>
+                </div>
+            </section>
+
+            <!-- Section 8: Cost & Timeline -->
+            <section id="cost" class="content-section card mb-10">
+                <h2 class="section-title" data-lang-key="cost_title">8. Cost and Timeline</h2>
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <h3 class="font-semibold text-lg mb-2" data-lang-key="cost_breakdown_label">Cost Breakdown</h3>
+                        <p class="text-sm text-gray-500 mb-4 no-print" data-lang-key="cost_breakdown_desc">Enter the costs to see a live update of the total and chart.</p>
+                        <div id="cost-inputs" class="space-y-4">
+                            <div>
+                                <label class="font-medium text-gray-700" data-lang-key="cost_consulting_label">Development & Consulting (One-Time)</label>
+                                <input type="number" data-name="Consulting" class="cost-input input-field mt-1" placeholder="0">
+                            </div>
+                             <div>
+                                <label class="font-medium text-gray-700" data-lang-key="cost_licensing_label">Software Licensing (Recurring)</label>
+                                <input type="number" data-name="Licensing" class="cost-input input-field mt-1" placeholder="0">
+                            </div>
+                            <div>
+                                <label class="font-medium text-gray-700" data-lang-key="cost_other_label">Other</label>
+                                <input type="number" data-name="Other" class="cost-input input-field mt-1" placeholder="0">
+                            </div>
+                            <div class="text-right text-xl font-bold pt-4 border-t mt-4">
+                                <span data-lang-key="cost_total_label">Total</span>: <span id="total-cost">$0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="costChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 9: Terms and Conditions -->
+            <section id="terms" class="content-section card mb-10">
+                <h2 class="section-title" data-lang-key="terms_title">9. Terms and Conditions</h2>
+                <div class="space-y-4">
+                    <textarea id="terms-textarea" class="input-field h-48" data-lang-key="terms_placeholder" placeholder="Enter terms and conditions..."></textarea>
+                </div>
+            </section>
+
+            <!-- Section 10: Sign-Off -->
+            <section id="signoff" class="content-section card mb-10">
+                <h2 class="section-title" data-lang-key="signoff_title">10. Alignment and Sign-Off</h2>
+                <p class="text-gray-600 mb-6" data-lang-key="signoff_desc">By signing below, both parties agree to the plan laid out in this document.</p>
+                <div class="grid md:grid-cols-2 gap-8">
+                     <div>
+                        <h3 class="font-semibold text-lg mb-2">For DHL</h3>
+                        <canvas id="signature-pad-1" class="bg-gray-100 border border-gray-300 rounded-lg w-full h-32 cursor-crosshair"></canvas>
+                        <div class="mt-2 text-right">
+                            <button class="btn btn-secondary text-sm no-print" data-canvas="signature-pad-1" data-lang-key="clear_btn">Clear</button>
+                        </div>
+                     </div>
+                     <div>
+                        <h3 id="client-signature-label" class="font-semibold text-lg mb-2" data-lang-key="signoff_client_name_label">For [Client Name]</h3>
+                        <canvas id="signature-pad-2" class="bg-gray-100 border border-gray-300 rounded-lg w-full h-32 cursor-crosshair"></canvas>
+                        <div class="mt-2 text-right">
+                            <button class="btn btn-secondary text-sm no-print" data-canvas="signature-pad-2" data-lang-key="clear_btn_2">Clear</button>
+                        </div>
+                     </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+    <div class="fixed bottom-6 right-6 z-30 flex flex-col space-y-3 no-print">
+        <button id="export-btn" title="Export Proposal" class="btn btn-primary w-14 h-14 rounded-full flex items-center justify-center shadow-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+        </button>
+        <button id="print-btn" title="Print Proposal" class="btn bg-white text-gray-600 w-14 h-14 rounded-full flex items-center justify-center shadow-lg">
+             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+        </button>
+    </div>
+    
+    <div id="export-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center no-print">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+            <h3 class="text-2xl font-bold mb-6 text-center">Export Proposal</h3>
+            <div class="space-y-4">
+                <button id="download-pdf-btn" class="btn btn-primary w-full gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Download as PDF
+                </button>
+                <button id="download-word-btn" class="btn btn-secondary w-full gap-3">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    Download as Word (.doc)
+                </button>
+            </div>
+            <button id="close-export-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="pdf-loader" class="hidden fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-75 z-50 flex-col items-center justify-center text-white">
+        <p class="text-2xl">Generating PDF...</p>
+        <p id="pdf-progress" class="text-lg mt-2"></p>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    window.jsPDF = window.jspdf.jsPDF;
+
+    // --- Sidebar Toggle ---
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const body = document.body;
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', () => {
+            body.classList.toggle('sidebar-collapsed');
+        });
+    }
+
+    // --- I18N Dictionary ---
+    const i18n = {
+        en: {
+            proposal_title_nav: "Project Proposal", nav_overview: "Overview", nav_diagnosis: "Diagnosis", nav_solution: "Solution Analysis", nav_visuals: "Visuals", nav_viability: "Viability", nav_tools: "Tool Selection", nav_plan: "Project Plan", nav_sipoc: "SIPOC Diagram", nav_rasci: "RASCI Matrix", nav_cost: "Cost & Timeline", nav_terms: "Terms", nav_signoff: "Sign-Off",
+            main_header_title: "Project Proposal Document",
+            overview_title: "1. Project Overview", overview_project_title_label: "Project Title", overview_client_name_label: "Client Name", overview_date_label: "Date", overview_summary_label: "Executive Summary", generate_summary_btn: "✨ Generate Summary", overview_project_title_placeholder: "Project Title", overview_client_name_placeholder: "Client Name", overview_summary_placeholder: "Executive Summary: A brief, high-level summary of the project...",
+            diagnosis_title: "2. Client Needs and Problem Diagnosis", diagnosis_request_label: "Initial Client Request", diagnosis_request_desc: "Describe the problem or need as it was initially presented by the client.", diagnosis_request_placeholder: "Client's pain points, goals...", diagnosis_in_depth_label: "In-Depth Diagnosis", diagnosis_in_depth_desc: "Detail your analysis of the client's situation and root causes.", diagnosis_in_depth_placeholder: "Findings from interviews, data analysis...",
+            solution_title: "3. System & Solution Analysis", solution_current_system: "The Current System (As-Is)", solution_current_system_desc: "Describe the current workflow and its pain points.", solution_current_system_placeholder: "Current process description...", solution_proposed_system: "The Proposed System (To-Be)", solution_proposed_system_desc: "Describe the proposed solution and its benefits.", solution_proposed_system_placeholder: "Proposed solution benefits...", brainstorm_btn: "✨ Brainstorm",
+            visuals_title: "4. Visuals & Diagrams", visuals_desc: "Add any relevant images, flowcharts, or architecture diagrams to support your proposal.", visuals_placeholder: "Drag & drop images here, or click to select files.",
+            viability_title: "5. Viability and Justification", viability_case_studies_label: "Case Studies & Precedents", viability_case_studies_desc: "Provide 1-2 brief examples of similar problems solved.", viability_case_studies_placeholder: "e.g., 'A similar data integration challenge at Company X...'", viability_assessment_label: "Viability Assessment", viability_assessment_desc: "Assess technical, operational, and economic viability.", viability_assessment_placeholder: "Is the technology mature? Does the cost justify the benefit?",
+            tools_title: "6. Tool Selection and Technical Specifications", tools_evaluation_label: "Tool Evaluation",
+            plan_title: "7. Project Plan and Deliverables", plan_timeline_label: "Interactive Project Timeline", plan_timeline_desc: "Click on a phase to see details and add comments.", plan_ai_label: "AI-Suggested Project Plan", plan_ai_desc: "Use the proposed solution to generate a draft project plan.", plan_ai_placeholder: "AI-generated plan will appear here...", suggest_plan_btn: "✨ Suggest Plan", plan_checklist_label: "Deliverables Checklist", plan_manage_deliverables_btn: "Manage Deliverables Checklist", plan_checklist_desc: "Check off the key deliverables as they are completed.", plan_add_deliverable_placeholder: "Add a new deliverable...", plan_add_btn: "Add",
+            sipoc_title: "SIPOC Diagram",
+            rasci_title: "RASCI Matrix",
+            cost_title: "8. Cost and Timeline", cost_breakdown_label: "Cost Breakdown", cost_breakdown_desc: "Enter the costs to see a live update of the total and chart.", cost_consulting_label: "Development & Consulting (One-Time)", cost_licensing_label: "Software Licensing (Recurring)", cost_other_label: "Other", cost_total_label: "Total",
+            terms_title: "9. Terms and Conditions", terms_placeholder: "This document constitutes the entire agreement...",
+            signoff_title: "10. Alignment and Sign-Off", signoff_desc: "By signing below, both parties agree to the plan laid out in this document.", signoff_your_company_label: "For [Your Company/Name]", signoff_client_name_label: "For [Client Name]", clear_btn: "Clear", clear_btn_2: "Clear",
+            add_edit_comment_btn: "Add/Edit Comment", comment_placeholder: "Enter comments for {phaseName}..."
+        },
+        pt: {
+            proposal_title_nav: "Proposta de Projeto", nav_overview: "Visão Geral", nav_diagnosis: "Diagnóstico", nav_solution: "Análise da Solução", nav_visuals: "Visuais", nav_viability: "Viabilidade", nav_tools: "Seleção de Ferramentas", nav_plan: "Plano do Projeto", nav_sipoc: "Diagrama SIPOC", nav_rasci: "Matriz RASCI", nav_cost: "Custo e Cronograma", nav_terms: "Termos", nav_signoff: "Aprovação",
+            main_header_title: "Documento de Proposta de Projeto",
+            overview_title: "1. Visão Geral do Projeto", overview_project_title_label: "Título do Projeto", overview_client_name_label: "Nome do Cliente", overview_date_label: "Data", overview_summary_label: "Resumo Executivo", generate_summary_btn: "✨ Gerar Resumo", overview_project_title_placeholder: "Título do Projeto", overview_client_name_placeholder: "Nome do Cliente", overview_summary_placeholder: "Resumo Executivo: Um breve resumo de alto nível do projeto...",
+            diagnosis_title: "2. Necessidades do Cliente e Diagnóstico do Problema", diagnosis_request_label: "Solicitação Inicial do Cliente", diagnosis_request_desc: "Descreva o problema ou necessidade conforme apresentado inicialmente pelo cliente.", diagnosis_request_placeholder: "Pontos de dor do cliente, objetivos...", diagnosis_in_depth_label: "Diagnóstico Aprofundado", diagnosis_in_depth_desc: "Detalhe sua análise da situação do cliente e as causas raízes.", diagnosis_in_depth_placeholder: "Resultados de entrevistas, análise de dados...",
+            solution_title: "3. Análise do Sistema e da Solução", solution_current_system: "O Sistema Atual (Como Está)", solution_current_system_desc: "Descreva o fluxo de trabalho atual e seus pontos de dor.", solution_current_system_placeholder: "Descrição do processo atual...", solution_proposed_system: "O Sistema Proposto (Como Será)", solution_proposed_system_desc: "Descreva a solução proposta e seus benefícios.", solution_proposed_system_placeholder: "Benefícios da solução proposta...", brainstorm_btn: "✨ Brainstorm",
+            visuals_title: "4. Visuais e Diagramas", visuals_desc: "Adicione quaisquer imagens, fluxogramas ou diagramas de arquitetura relevantes para apoiar sua proposta.", visuals_placeholder: "Arraste e solte imagens aqui, ou clique para selecionar arquivos.",
+            viability_title: "5. Viabilidade e Justificativa", viability_case_studies_label: "Estudos de Caso e Precedentes", viability_case_studies_desc: "Forneça 1-2 exemplos breves de problemas semelhantes resolvidos.", viability_case_studies_placeholder: "Ex: 'Um desafio semelhante de integração de dados na Empresa X...'", viability_assessment_label: "Avaliação de Viabilidade", viability_assessment_desc: "Avalie a viabilidade técnica, operacional e econômica.", viability_assessment_placeholder: "A tecnologia é madura? O custo justifica o benefício?",
+            tools_title: "6. Seleção de Ferramentas e Especificações Técnicas", tools_evaluation_label: "Avaliação de Ferramentas",
+            plan_title: "7. Plano do Projeto e Entregáveis", plan_timeline_label: "Cronograma Interativo do Projeto", plan_timeline_desc: "Clique em uma fase para ver detalhes e adicionar comentários.", plan_ai_label: "Plano de Projeto Sugerido por IA", plan_ai_desc: "Use a solução proposta para gerar um rascunho do plano de projeto.", plan_ai_placeholder: "O plano gerado por IA aparecerá aqui...", suggest_plan_btn: "✨ Sugerir Plano", plan_checklist_label: "Checklist de Entregáveis", plan_manage_deliverables_btn: "Gerenciar Checklist de Entregáveis", plan_checklist_desc: "Marque os entregáveis principais à medida que são concluídos.", plan_add_deliverable_placeholder: "Adicionar novo entregável...", plan_add_btn: "Adicionar",
+            sipoc_title: "Diagrama SIPOC",
+            rasci_title: "Matriz RASCI",
+            cost_title: "8. Custo e Cronograma", cost_breakdown_label: "Detalhamento de Custos", cost_breakdown_desc: "Insira os custos para ver uma atualização ao vivo do total e do gráfico.", cost_consulting_label: "Desenvolvimento e Consultoria (Único)", cost_licensing_label: "Licenciamento de Software (Recorrente)", cost_other_label: "Outros", cost_total_label: "Total",
+            terms_title: "9. Termos e Condições", terms_placeholder: "Este documento constitui o acordo integral...",
+            signoff_title: "10. Alinhamento e Aprovação", signoff_desc: "Ao assinar abaixo, ambas as partes concordam com o plano estabelecido neste documento.", signoff_your_company_label: "Por [Sua Empresa/Nome]", signoff_client_name_label: "Por [Nome do Cliente]", clear_btn: "Limpar", clear_btn_2: "Limpar",
+            add_edit_comment_btn: "Adicionar/Editar Comentário", comment_placeholder: "Insira comentários para {phaseName}..."
+        }
+    };
+    let currentLanguage = 'en';
+
+    // --- Data Stores ---
+    let toolData = [
+        { name: 'Power BI', score: 90, description: 'Excellent for interactive dashboards and data visualization.' },
+        { name: 'Python', score: 75, description: 'Ideal for complex data manipulation and custom scripting.' },
+        { name: 'Power Automate', score: 85, description: 'Best for automating workflows across Microsoft 365.' },
+        { name: 'Power Apps', score: 70, description: 'Rapid development of low-code internal applications.' },
+        { name: 'UiPath', score: 60, description: 'Powerful for RPA and automating legacy systems.' }
+    ];
+    let projectPhases = [
+        { name: 'Discovery', name_pt: 'Descoberta', duration: 1, details: 'Finalize requirements, project setup.', deliverables: ['Signed Proposal Document'], comments: '' },
+        { name: 'Development', name_pt: 'Desenvolvimento', duration: 3, details: 'Build solution, configure tools.', deliverables: ['Functional Power BI Dashboard'], comments: '' },
+        { name: 'Testing', name_pt: 'Testes', duration: 1, details: 'User Acceptance Testing, bug fixes.', deliverables: ['UAT Sign-off Sheet'], comments: '' },
+        { name: 'Deployment', name_pt: 'Implantação', duration: 1, details: 'Go-live, user training, documentation.', deliverables: ['User Manual & Training Session'], comments: '' }
+    ];
+    let allDeliverables = ['Signed Proposal Document', 'Functional Power BI Dashboard', 'UAT Sign-off Sheet', 'User Manual & Training Session'];
+    let rasciData = {
+        roles: ['Project Manager', 'Developer', 'Client Stakeholder'],
+        tasks: [
+            { name: 'Project Kick-off', assignments: {'Project Manager': 'R', 'Developer': 'S', 'Client Stakeholder': 'C'} },
+            { name: 'Dashboard Development', assignments: {'Project Manager': 'A', 'Developer': 'R', 'Client Stakeholder': 'I'} }
+        ]
+    };
+    let sipocData = {
+        Suppliers: ['IT Department', 'Business Users'],
+        Inputs: ['Data Sources', 'User Requirements'],
+        Process: ['Data Extraction', 'Dashboard Creation', 'User Testing'],
+        Outputs: ['Functional Dashboard', 'User Manual'],
+        Customers: ['Management', 'Sales Team']
+    };
+
+    // --- Language Switcher ---
+    const languageSwitcher = document.getElementById('language-switcher');
+    function setLanguage(lang) {
+        currentLanguage = lang;
+        document.documentElement.lang = lang;
+        document.querySelectorAll('[data-lang-key]').forEach(el => {
+            const key = el.dataset.langKey;
+            const text = (i18n[lang] && i18n[lang][key]) || i18n['en'][key];
+            if (el.placeholder) el.placeholder = text;
+            else el.innerHTML = text;
+        });
+        populateMobileNav();
+        renderTimeline();
+        renderDeliverablesChecklist();
+        if(document.getElementById('phase-details')) document.getElementById('phase-details').classList.add('hidden');
+    }
+    if(languageSwitcher) languageSwitcher.addEventListener('change', (e) => setLanguage(e.target.value));
+
+    // --- Navigation ---
+    const sections = document.querySelectorAll('.content-section');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const mobileNav = document.getElementById('mobile-nav-select');
+
+    function setActiveLink() {
+        let index = sections.length;
+        while (--index && window.scrollY + 150 < sections[index].offsetTop) {} 
+        navLinks.forEach((link) => link.classList.remove('active'));
+        if (index >= 0 && sections[index]) {
+            const activeLink = document.querySelector(`.nav-link[href="#${sections[index].id}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+                if(mobileNav) mobileNav.value = `#${sections[index].id}`;
+            }
+        }
+    }
+
+    function populateMobileNav() {
+        if (!mobileNav) return;
+        mobileNav.innerHTML = '';
+        navLinks.forEach(link => {
+            const text = link.querySelector('span').textContent;
+            if (!text) return;
+            const option = document.createElement('option');
+            option.value = link.getAttribute('href');
+            option.textContent = text;
+            mobileNav.appendChild(option);
+        });
+    }
+    if(mobileNav) mobileNav.addEventListener('change', () => {
+        const targetElement = document.querySelector(mobileNav.value);
+        if (targetElement) window.scrollTo({ top: targetElement.offsetTop - 100, behavior: 'smooth' });
+    });
+
+    // --- Client Name Sync ---
+    const clientNameInput = document.getElementById('client-name-input');
+    const clientSignatureLabel = document.getElementById('client-signature-label');
+    clientNameInput.addEventListener('input', (e) => {
+        const name = e.target.value.trim();
+        clientSignatureLabel.textContent = name ? `For ${name}` : 'For [Client Name]';
+    });
+
+    // --- Tool Evaluation Chart & Dynamic Management ---
+    const toolListContainer = document.getElementById('tool-evaluation-list');
+    const toolCtx = document.getElementById('toolChart').getContext('2d');
+    const showAddToolFormBtn = document.getElementById('show-add-tool-form-btn');
+    const addToolForm = document.getElementById('add-tool-form');
+    const addToolBtn = document.getElementById('add-tool-btn');
+    const newToolNameInput = document.getElementById('new-tool-name');
+    const newToolScoreInput = document.getElementById('new-tool-score');
+    
+    let toolChart = new Chart(toolCtx, {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Suitability Score', data: [], backgroundColor: 'rgba(59, 130, 246, 0.5)', borderColor: 'rgba(59, 130, 246, 1)', borderWidth: 1, borderRadius: 4 }] },
+        options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => toolData[c.dataIndex].description || `Score: ${c.raw}` } } },
+            scales: { x: { max: 100, beginAtZero: true, grid: { color: '#e5e7eb' } }, y: { grid: { display: false } } }
+        }
+    });
+
+    function renderToolSection() {
+        toolListContainer.innerHTML = '';
+        toolData.forEach((tool, index) => {
+            const div = document.createElement('div');
+            div.innerHTML = `
+                <div class="flex justify-between items-center mb-1">
+                    <label class="font-medium">${tool.name}</label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-bold text-blue-600" id="tool-score-label-${index}">${tool.score}</span>
+                        <button class="remove-tool-btn text-gray-400 hover:text-red-500 no-print" data-index="${index}">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <input type="range" min="0" max="100" value="${tool.score}" class="w-full tool-rating-slider" data-index="${index}">`;
+            toolListContainer.appendChild(div);
+        });
+        toolChart.data.labels = toolData.map(t => t.name);
+        toolChart.data.datasets[0].data = toolData.map(t => t.score);
+        toolChart.update();
+    }
+    toolListContainer.addEventListener('input', (e) => {
+        if (e.target.classList.contains('tool-rating-slider')) {
+            const index = e.target.dataset.index;
+            const newScore = parseInt(e.target.value, 10);
+            toolData[index].score = newScore;
+            document.getElementById(`tool-score-label-${index}`).textContent = newScore;
+            toolChart.data.datasets[0].data = toolData.map(t => t.score);
+            toolChart.update();
+        }
+    });
+    toolListContainer.addEventListener('click', (e) => {
+        const removeButton = e.target.closest('.remove-tool-btn');
+        if (removeButton) {
+            toolData.splice(removeButton.dataset.index, 1);
+            renderToolSection();
+        }
+    });
+    showAddToolFormBtn.addEventListener('click', () => {
+        addToolForm.classList.toggle('hidden');
+    });
+    addToolBtn.addEventListener('click', () => {
+        const name = newToolNameInput.value.trim();
+        const score = parseInt(newToolScoreInput.value, 10);
+        if (name && !isNaN(score) && score >= 0 && score <= 100) {
+            toolData.push({ name, score, description: `Score: ${score}` });
+            newToolNameInput.value = ''; newToolScoreInput.value = '';
+            addToolForm.classList.add('hidden');
+            renderToolSection();
+        } else {
+            alert('Please enter a valid tool name and a score between 0 and 100.');
+        }
+    });
+
+    // --- Project Plan Timeline & Deliverables ---
+    const timelineContainer = document.getElementById('timeline-container');
+    const phaseDetailsContainer = document.getElementById('phase-details');
+    const deliverablesChecklist = document.getElementById('deliverables-checklist');
+    const addDeliverableBtn = document.getElementById('add-deliverable-btn');
+    const newDeliverableInput = document.getElementById('new-deliverable-input');
+    const toggleDeliverablesBtn = document.getElementById('toggle-deliverables-btn');
+    const manageDeliverablesContainer = document.getElementById('manage-deliverables-container');
+    
+    toggleDeliverablesBtn.addEventListener('click', () => {
+        manageDeliverablesContainer.classList.toggle('hidden');
+    });
+
+    function renderTimeline() {
+        if(!timelineContainer) return;
+        timelineContainer.innerHTML = '';
+        const totalDuration = projectPhases.reduce((acc, p) => acc + p.duration, 0);
+        let cumulativeDuration = 0;
+        projectPhases.forEach((phase, index) => {
+            if (phase.duration === 0) return;
+            const leftPosition = (cumulativeDuration / totalDuration) * 100;
+            const width = (phase.duration / totalDuration) * 100;
+            const phaseName = currentLanguage === 'pt' ? phase.name_pt : phase.name;
+            const bar = document.createElement('div');
+            bar.className = 'absolute h-2 top-1/2 -translate-y-1/2 rounded';
+            bar.style.left = `${leftPosition}%`;
+            bar.style.width = `${width}%`;
+            bar.style.backgroundColor = `hsl(${210 + index * 25}, 80%, 60%)`;
+            const node = document.createElement('button');
+            node.className = 'timeline-node absolute w-6 h-6 rounded-full bg-white border-2 border-gray-500 top-1/2 -translate-y-1/2 -translate-x-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500';
+            node.style.left = `${leftPosition}%`;
+            node.title = phaseName;
+            node.dataset.index = index;
+            const label = document.createElement('span');
+            label.className = 'absolute top-full mt-2 -translate-x-1/2 text-sm text-center w-24';
+            label.style.left = `${leftPosition}%`;
+            label.innerText = phaseName;
+            timelineContainer.appendChild(bar);
+            timelineContainer.appendChild(node);
+            timelineContainer.appendChild(label);
+            cumulativeDuration += phase.duration;
+        });
+    }
+    function renderDeliverablesChecklist() {
+        if(!deliverablesChecklist) return;
+        deliverablesChecklist.innerHTML = '';
+        allDeliverables.forEach((deliverable, index) => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center justify-between bg-gray-50 p-2 rounded-md';
+            div.innerHTML = `
+                <div class="flex items-center">
+                    <label for="deliverable-main-${index}" class="ml-3 block text-sm font-medium text-gray-700">${deliverable}</label>
+                </div>
+                <button class="delete-deliverable-btn text-gray-400 hover:text-red-500 no-print" data-index="${index}">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>`;
+            deliverablesChecklist.appendChild(div);
+        });
+    }
+    if(addDeliverableBtn) addDeliverableBtn.addEventListener('click', () => {
+        const newDeliverableText = newDeliverableInput.value.trim();
+        if (newDeliverableText && !allDeliverables.includes(newDeliverableText)) {
+            allDeliverables.push(newDeliverableText);
+            renderDeliverablesChecklist();
+            newDeliverableInput.value = '';
+        }
+    });
+    if(deliverablesChecklist) deliverablesChecklist.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-deliverable-btn');
+        if (deleteBtn) {
+            const index = parseInt(deleteBtn.dataset.index, 10);
+            allDeliverables.splice(index, 1);
+            renderDeliverablesChecklist();
+        }
+    });
+    if(timelineContainer) timelineContainer.addEventListener('click', (e) => {
+        const node = e.target.closest('.timeline-node');
+        if (!node) return;
+        const index = node.dataset.index;
+        const phase = projectPhases[index];
+        const phaseName = currentLanguage === 'pt' ? phase.name_pt : phase.name;
+        const phaseDetails = currentLanguage === 'pt' ? (phase.details_pt || phase.details) : phase.details;
+        const weeksText = currentLanguage === 'pt' ? 'semanas' : 'weeks';
+        const addEditText = i18n[currentLanguage].add_edit_comment_btn;
+        const placeholderText = i18n[currentLanguage].comment_placeholder.replace('{phaseName}', phaseName);
+
+        let deliverablesHtml = allDeliverables.map((d, i) => {
+            const isChecked = phase.deliverables.includes(d);
+            return `<div class="flex items-center">
+                        <input id="phase-deliverable-${index}-${i}" type="checkbox" data-deliverable="${d}" class="phase-deliverable-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${isChecked ? 'checked' : ''}>
+                        <label for="phase-deliverable-${index}-${i}" class="ml-3 block text-sm font-medium text-gray-700">${d}</label>
+                    </div>`;
+        }).join('');
+
+        phaseDetailsContainer.innerHTML = `
+            <h4 class="font-bold">${phaseName} (${phase.duration} ${weeksText})</h4>
+            <p>${phaseDetails}</p>
+            <div class="mt-4">
+                <h5 class="font-semibold text-sm mb-2">Deliverables for this Phase</h5>
+                <div class="space-y-2 no-print">${deliverablesHtml}</div>
+            </div>
+            <div class="mt-4">
+                <button class="toggle-comment-btn btn btn-secondary btn-sm py-1 px-2 no-print" data-index="${index}">${addEditText}</button>
+                <div class="comment-container hidden mt-2">
+                    <textarea class="phase-comment-textarea input-field h-24" data-index="${index}" placeholder="${placeholderText}">${phase.comments || ''}</textarea>
+                </div>
+            </div>`;
+        phaseDetailsContainer.classList.remove('hidden');
+    });
+    if(phaseDetailsContainer) phaseDetailsContainer.addEventListener('change', (e) => {
+        if(e.target.classList.contains('phase-deliverable-checkbox')) {
+            const phaseIndex = e.target.id.split('-')[2];
+            const deliverable = e.target.dataset.deliverable;
+            if(e.target.checked) {
+                projectPhases[phaseIndex].deliverables.push(deliverable);
+            } else {
+                projectPhases[phaseIndex].deliverables = projectPhases[phaseIndex].deliverables.filter(d => d !== deliverable);
+            }
+        }
+    });
+    if(phaseDetailsContainer) phaseDetailsContainer.addEventListener('input', (e) => {
+        if (e.target.classList.contains('phase-comment-textarea')) {
+            const index = e.target.dataset.index;
+            projectPhases[index].comments = e.target.value;
+        }
+    });
+    if(phaseDetailsContainer) phaseDetailsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('toggle-comment-btn')) e.target.nextElementSibling.classList.toggle('hidden');
+    });
+
+    // --- SIPOC Diagram ---
+    const sipocContainer = document.querySelector('#sipoc .grid');
+    function renderSipoc() {
+        if (!sipocContainer) return;
+        sipocContainer.innerHTML = '';
+        Object.keys(sipocData).forEach(key => {
+            const column = document.createElement('div');
+            column.className = 'bg-gray-50 p-3 rounded-lg';
+            let itemsHtml = sipocData[key].map(item => `<li>${item}</li>`).join('');
+            column.innerHTML = `
+                <h4 class="font-bold text-center mb-2">${key}</h4>
+                <ul class="list-disc list-inside space-y-1">${itemsHtml}</ul>
+                <div class="flex gap-1 mt-2 no-print">
+                    <input type="text" placeholder="Add..." class="sipoc-input input-field text-sm py-1">
+                    <button class="sipoc-add-btn btn btn-primary btn-sm p-1" data-column="${key}">+</button>
+                </div>
+            `;
+            sipocContainer.appendChild(column);
+        });
+    }
+    sipocContainer?.addEventListener('click', e => {
+        if (e.target.classList.contains('sipoc-add-btn')) {
+            const column = e.target.dataset.column;
+            const input = e.target.previousElementSibling;
+            if (input.value.trim()) {
+                sipocData[column].push(input.value.trim());
+                input.value = '';
+                renderSipoc();
+            }
+        }
+    });
+
+    // --- RASCI Matrix ---
+    const rasciTable = document.getElementById('rasci-table');
+    function renderRasci() {
+        if (!rasciTable) return;
+        let headHtml = '<thead><tr class="bg-gray-100"><th>Task</th>';
+        rasciData.roles.forEach(role => headHtml += `<th>${role}</th>`);
+        headHtml += '</tr></thead>';
+
+        let bodyHtml = '<tbody>';
+        rasciData.tasks.forEach((task, taskIndex) => {
+            bodyHtml += `<tr><td class="font-medium p-2 border">${task.name}</td>`;
+            rasciData.roles.forEach((role, roleIndex) => {
+                const assignment = task.assignments[role] || '-';
+                bodyHtml += `<td class="p-2 border text-center">
+                    <select class="rasci-select input-field text-sm p-1" data-task="${taskIndex}" data-role="${role}">
+                        <option value="-" ${assignment === '-' ? 'selected' : ''}>-</option>
+                        <option value="R" ${assignment === 'R' ? 'selected' : ''}>R</option>
+                        <option value="A" ${assignment === 'A' ? 'selected' : ''}>A</option>
+                        <option value="S" ${assignment === 'S' ? 'selected' : ''}>S</option>
+                        <option value="C" ${assignment === 'C' ? 'selected' : ''}>C</option>
+                        <option value="I" ${assignment === 'I' ? 'selected' : ''}>I</option>
+                    </select>
+                </td>`;
+            });
+            bodyHtml += '</tr>';
+        });
+        bodyHtml += '</tbody>';
+        rasciTable.innerHTML = headHtml + bodyHtml;
+    }
+    rasciTable?.addEventListener('change', e => {
+        if (e.target.classList.contains('rasci-select')) {
+            const taskIndex = e.target.dataset.task;
+            const role = e.target.dataset.role;
+            rasciData.tasks[taskIndex].assignments[role] = e.target.value;
+        }
+    });
+    document.getElementById('add-rasci-task-btn')?.addEventListener('click', () => {
+        const input = document.getElementById('new-rasci-task');
+        if (input.value.trim()) {
+            rasciData.tasks.push({ name: input.value.trim(), assignments: {} });
+            input.value = '';
+            renderRasci();
+        }
+    });
+    document.getElementById('add-rasci-role-btn')?.addEventListener('click', () => {
+        const input = document.getElementById('new-rasci-role');
+        if (input.value.trim()) {
+            rasciData.roles.push(input.value.trim());
+            input.value = '';
+            renderRasci();
+        }
+    });
+
+    // --- Cost Chart ---
+    const costCtx = document.getElementById('costChart').getContext('2d');
+    const costInputs = document.querySelectorAll('.cost-input');
+    const totalCostEl = document.getElementById('total-cost');
+    let costChart = new Chart(costCtx, {
+        type: 'doughnut',
+        data: { labels: [], datasets: [{ data: [], backgroundColor: ['#2563EB', '#F59E0B', '#10B981'], borderColor: '#FFFFFF', borderWidth: 4 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+    function updateCostChart() {
+        const costs = Array.from(costInputs).map(input => parseFloat(input.value) || 0);
+        const labels = Array.from(costInputs).map(input => input.dataset.name);
+        totalCostEl.textContent = `$${costs.reduce((a, b) => a + b, 0).toLocaleString()}`;
+        costChart.data.labels = labels;
+        costChart.data.datasets[0].data = costs;
+        costChart.update();
+    }
+    costInputs.forEach(input => input.addEventListener('input', updateCostChart));
+
+    // --- Signature Pads ---
+    function setupSignaturePad(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            ctx.scale(ratio, ratio);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        function getPos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const source = evt.touches ? evt.touches[0] : evt;
+            return { x: source.clientX - rect.left, y: source.clientY - rect.top };
+        }
+        function startDrawing(e) { drawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); e.preventDefault(); }
+        function stopDrawing(e) { drawing = false; ctx.beginPath(); e.preventDefault(); }
+        function draw(e) {
+            if (!drawing) return;
+            const pos = getPos(e);
+            ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.strokeStyle = '#111827';
+            ctx.lineTo(pos.x, pos.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+            e.preventDefault();
+        }
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchstart', startDrawing, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        const clearButton = document.querySelector(`button[data-canvas="${canvasId}"]`);
+        if (clearButton) {
+            clearButton.addEventListener('click', () => {
+                const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                ctx.clearRect(0, 0, canvas.width / ratio, canvas.height / ratio);
+            });
+        }
+    }
+    setupSignaturePad('signature-pad-1');
+    setupSignaturePad('signature-pad-2');
+    
+    // --- AI Features ---
+    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=`;
+    async function callGemini(prompt, button, statusEl, outputEl) {
+        statusEl.textContent = 'Gathering information...';
+        button.disabled = true;
+        const originalButtonText = button.innerHTML;
+        button.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating...`;
+        try {
+            const langName = currentLanguage === 'pt' ? 'Portuguese' : 'English';
+            const fullPrompt = `${prompt}\n\nPlease provide the response in ${langName}.`;
+            const payload = { contents: [{ role: "user", parts: [{ text: fullPrompt }] }] };
+            statusEl.textContent = 'Contacting AI assistant...';
+            const response = await fetch(geminiApiUrl, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+            const result = await response.json();
+            if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
+                const text = result.candidates[0].content.parts[0].text;
+                outputEl.value = text;
+                statusEl.textContent = 'Success!';
+            } else {
+                throw new Error('Unexpected API response structure.');
+            }
+        } catch (error) {
+            console.error("Error calling Gemini API:", error);
+            statusEl.textContent = `Error: ${error.message}`;
+        } finally {
+            button.disabled = false;
+            button.innerHTML = originalButtonText;
+            setTimeout(() => { if(statusEl.textContent.startsWith('Success')) statusEl.textContent = ''; }, 3000);
+        }
+    }
+
+    document.getElementById('generate-summary-btn')?.addEventListener('click', () => {
+        const prompt = `You are a professional business consultant writing a project proposal. Based on the following details, write a concise and compelling executive summary (3-4 sentences long).\n\n- Project Title: "${document.getElementById('project-title-input').value}"\n- For Client: "${document.getElementById('client-name-input').value}"\n- Client's Problem and Needs: "${document.getElementById('client-request-textarea').value}. Our diagnosis reveals: ${document.getElementById('in-depth-diagnosis-textarea').value}"\n- Our Proposed Solution: "${document.getElementById('proposed-system-textarea').value}"`;
+        callGemini(prompt, document.getElementById('generate-summary-btn'), document.getElementById('summary-ai-status'), document.getElementById('executive-summary-textarea'));
+    });
+    document.getElementById('brainstorm-solution-btn')?.addEventListener('click', () => {
+        const prompt = `I am a tech consultant. A client has the following problem: "${document.getElementById('client-request-textarea').value}". My diagnosis is: "${document.getElementById('in-depth-diagnosis-textarea').value}". Brainstorm 2-3 potential solutions, mentioning specific tools like Power BI, Python, Power Automate, Power Apps, or UiPath where relevant. Frame the answer as a proposal.`;
+        callGemini(prompt, document.getElementById('brainstorm-solution-btn'), document.getElementById('solution-ai-status'), document.getElementById('proposed-system-textarea'));
+    });
+    document.getElementById('suggest-plan-btn')?.addEventListener('click', () => {
+        const prompt = `Based on the following proposed solution, break it down into a high-level project plan with 3-4 phases (e.g., Discovery, Development, Testing, Deployment). For each phase, list 2-3 key activities.\n\nProposed Solution: "${document.getElementById('proposed-system-textarea').value}"`;
+        callGemini(prompt, document.getElementById('suggest-plan-btn'), document.getElementById('plan-ai-status'), document.getElementById('ai-plan-textarea'));
+    });
+
+    // --- Image Upload ---
+    const dropZone = document.getElementById('image-drop-zone');
+    const imageUploadInput = document.getElementById('image-upload-input');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const imagePlaceholder = document.getElementById('image-placeholder');
+    if(dropZone) dropZone.addEventListener('click', () => imageUploadInput.click());
+    if(imageUploadInput) imageUploadInput.addEventListener('change', (e) => handleFiles(e.target.files));
+    if(dropZone) {
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-blue-500', 'bg-blue-50'); });
+        dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500', 'bg-blue-50'); });
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500', 'bg-blue-50'); handleFiles(e.dataTransfer.files); });
+    }
+    function handleFiles(files) {
+        if(imagePlaceholder) imagePlaceholder.style.display = 'none';
+        for (const file of files) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'relative';
+                    imgContainer.innerHTML = `<img src="${e.target.result}" class="max-h-48 rounded-lg shadow-md"><button class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold opacity-75 hover:opacity-100 no-print">&times;</button>`;
+                    imagePreviewContainer.appendChild(imgContainer);
+                    imgContainer.querySelector('button').addEventListener('click', () => imgContainer.remove());
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+
+    // --- Export and Print Functionality ---
+    const exportBtn = document.getElementById('export-btn');
+    const exportModal = document.getElementById('export-modal');
+    const closeExportModalBtn = document.getElementById('close-export-modal-btn');
+    const printBtn = document.getElementById('print-btn');
+    const downloadPdfBtn = document.getElementById('download-pdf-btn');
+    const downloadWordBtn = document.getElementById('download-word-btn');
+    const pdfLoader = document.getElementById('pdf-loader');
+    const pdfProgress = document.getElementById('pdf-progress');
+
+    function showExportModal() { exportModal.classList.remove('hidden'); }
+    function hideExportModal() { exportModal.classList.add('hidden'); }
+
+    exportBtn.addEventListener('click', showExportModal);
+    closeExportModalBtn.addEventListener('click', hideExportModal);
+    exportModal.addEventListener('click', (e) => {
+        if (e.target === exportModal) hideExportModal();
+    });
+
+    async function prepareForExport() {
+        const exportContainer = document.createElement('div');
+        
+        const headerClone = document.querySelector('.page-header').cloneNode(true);
+        headerClone.querySelectorAll('.no-print').forEach(el => el.remove());
+        exportContainer.appendChild(headerClone);
+
+        const sections = document.querySelectorAll('.content-section');
+        for (const section of sections) {
+            const sectionClone = section.cloneNode(true);
+            sectionClone.querySelectorAll('.no-print').forEach(el => el.remove());
+
+            // Replace inputs/textareas with their values and labels
+            sectionClone.querySelectorAll('input, textarea').forEach(el => {
+                if (el.type === 'file' || el.type === 'range' || el.type === 'checkbox' || el.classList.contains('no-print')) {
+                    el.parentNode.removeChild(el);
+                    return;
+                }
+                const p = document.createElement('div');
+                p.style.marginTop = '1rem';
+                p.style.marginBottom = '1rem';
+                let labelText = '';
+                const label = document.querySelector(`label[for="${el.id}"]`) || el.closest('div').querySelector('label');
+                if (label) {
+                    labelText = `<strong style="font-weight: bold;">${label.textContent}:</strong><br/>`;
+                }
+                p.innerHTML = `${labelText}${el.value.replace(/\n/g, '<br>') || '&nbsp;'}`;
+                el.parentNode.replaceChild(p, el);
+            });
+
+             // Convert canvases to images
+            const canvasElements = sectionClone.querySelectorAll('canvas');
+            for(const canvasEl of canvasElements) {
+                const img = document.createElement('img');
+                const originalCanvas = document.getElementById(canvasEl.id);
+                if(originalCanvas) {
+                    img.src = originalCanvas.toDataURL('image/png');
+                    img.style.width = '100%';
+                    img.style.border = '1px solid #ccc';
+                    img.style.borderRadius = '8px';
+                    canvasEl.parentNode.replaceChild(img, canvasEl);
+                }
+            }
+
+            // Ensure timeline comments are visible
+            sectionClone.querySelectorAll('.comment-container.hidden').forEach(c => {
+                c.classList.remove('hidden');
+            });
+            
+            exportContainer.appendChild(sectionClone);
+        }
+
+        return exportContainer;
+    }
+
+    window.addEventListener('beforeprint', () => {
+        document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
+    });
+    window.addEventListener('afterprint', () => {
+        document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
+    });
+    if(printBtn) printBtn.addEventListener('click', () => window.print());
+    
+    if(downloadPdfBtn) downloadPdfBtn.addEventListener('click', async () => {
+        hideExportModal();
+        pdfLoader.style.display = 'flex';
+        
+        try {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10;
+            let y = margin;
+
+            const addCanvasToPdf = async (element) => {
+                const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
+                const imgData = canvas.toDataURL('image/png');
+                const imgProps = pdf.getImageProperties(imgData);
+                const imgHeight = (imgProps.height * (pdfWidth - margin * 2)) / imgProps.width;
+
+                if (y + imgHeight > pdfHeight - margin) {
+                    pdf.addPage();
+                    y = margin;
+                }
+                pdf.addImage(imgData, 'PNG', margin, y, pdfWidth - margin * 2, imgHeight);
+                y += imgHeight + 5;
+            };
+
+            const exportContainer = await prepareForExport();
+            document.body.appendChild(exportContainer);
+            exportContainer.style.position = 'absolute';
+            exportContainer.style.left = '-9999px';
+            exportContainer.style.width = '800px'; 
+
+            const header = exportContainer.querySelector('.page-header');
+            if (header) {
+                await addCanvasToPdf(header);
+            }
+
+            const sections = exportContainer.querySelectorAll('.content-section');
+            for (let i = 0; i < sections.length; i++) {
+                pdfProgress.textContent = `Processing section ${i + 1} of ${sections.length}...`;
+                await addCanvasToPdf(sections[i]);
+            }
+            
+            pdf.save('Project-Proposal.pdf');
+            document.body.removeChild(exportContainer);
+
+        } catch (err) {
+            console.error("Error generating PDF:", err);
+            alert("Sorry, there was an error generating the PDF. Check the console for details.");
+        } finally {
+            pdfLoader.style.display = 'none';
+            pdfProgress.textContent = '';
+        }
+    });
+
+    if(downloadWordBtn) downloadWordBtn.addEventListener('click', async () => {
+        hideExportModal();
+        
+        const exportContainer = await prepareForExport();
+        
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML to Word</title></head><body>";
+        const footer = "</body></html>";
+        const sourceHTML = header + exportContainer.innerHTML + footer;
+        
+        const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+        const fileDownload = document.createElement("a");
+        document.body.appendChild(fileDownload);
+        fileDownload.href = source;
+        fileDownload.download = 'Project-Proposal.doc';
+        fileDownload.click();
+        document.body.removeChild(fileDownload);
+    });
+    
+    // --- Initial Setup Calls ---
+    setLanguage('en');
+    setActiveLink();
+    renderToolSection();
+    renderSipoc();
+    renderRasci();
+    updateCostChart();
+    window.addEventListener('scroll', setActiveLink);
+});
+</script>
+
+</body>
+</html>
