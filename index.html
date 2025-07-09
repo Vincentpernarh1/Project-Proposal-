@@ -186,7 +186,7 @@
         .chart-container {
             position: relative;
             width: 100%;
-            height: 300px; /* Reduced height */
+            height: 300px;
         }
 
         input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; width: 100%; }
@@ -195,6 +195,63 @@
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; margin-top: -4px; background-color: var(--primary-blue); height: 1.25rem; width: 1.25rem; border-radius: 9999px; }
         input[type="range"]::-moz-range-thumb { border: none; border-radius: 9999px; background-color: var(--primary-blue); height: 1.25rem; width: 1.25rem; }
 
+        .image-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background-color 0.2s;
+            margin-top: 1rem;
+        }
+        .image-upload-area:hover {
+            border-color: var(--primary-blue);
+            background-color: var(--light-blue-bg);
+        }
+        .image-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .image-preview-item {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .image-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .image-preview-item .remove-image-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            background-color: rgba(220, 38, 38, 0.8);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        .image-preview-item .remove-image-btn:hover {
+            opacity: 1;
+        }
+
+        .remove-btn-sm {
+            background: none; border: none; color: #9ca3af; cursor: pointer; transition: color 0.2s;
+        }
+        .remove-btn-sm:hover { color: #ef4444; }
 
         /* --- Print Styles --- */
         @media print {
@@ -206,12 +263,16 @@
             textarea { height: auto !important; overflow: visible !important; border: none !important; resize: none; padding: 0 !important; background-color: white !important; color: black !important; }
             .comment-container { display: block !important; }
             .tool-controls { display: none !important; }
+            .image-upload-area { border: none !important; background-color: transparent !important; padding: 0 !important; }
+            .image-preview-grid { display: block !important; }
+            .image-preview-item { margin-bottom: 1rem; break-inside: avoid; }
+            .image-preview-item img { max-width: 100%; height: auto; }
+            .print-only { display: inline !important; }
         }
     </style>
 </head>
 <body class="bg-gray-50">
 <div id="app-container">
-    <!-- Sidebar Navigation -->
     <nav class="sidebar p-4 no-print">
         <div class="mb-10 flex items-center gap-3 px-2">
             <div class="bg-blue-500 p-2 rounded-lg">
@@ -235,9 +296,7 @@
         </ul>
     </nav>
 
-    <!-- Main Content Wrapper -->
     <div id="main-content-wrapper" class="w-full">
-        <!-- Page Header -->
         <header class="page-header sticky top-0 z-20 p-4 flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <button id="sidebar-toggle" class="p-2 rounded-md text-gray-500 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 no-print">
@@ -257,21 +316,36 @@
         </header>
 
         <main id="main-content" class="p-4 md:p-8">
-            <!-- Mobile Nav Dropdown -->
             <div class="md:hidden mb-6 no-print">
                 <select id="mobile-nav-select" class="w-full input-field">
-                    <!-- Options populated by JS -->
                 </select>
             </div>
 
-            <!-- Section 1: Overview -->
+            <section id="project-management" class="content-section card mb-10 no-print">
+                <h2 class="section-title" data-lang-key="project_management_title">Project Management</h2>
+                <div class="space-y-4">
+                    <div class="flex flex-col md:flex-row gap-4 items-center">
+                        <button id="new-project-btn" class="btn btn-secondary flex-1" data-lang-key="new_project_btn">New Project</button>
+                        <button id="save-project-btn" class="btn btn-primary flex-1" data-lang-key="save_project_btn">Save Current Project</button>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-4 items-center">
+                        <select id="load-project-select" class="input-field flex-grow" data-lang-key="load_project_placeholder">
+                            <option value="">-- Load Existing Project --</option>
+                        </select>
+                        <button id="load-project-btn" class="btn btn-secondary" data-lang-key="load_btn">Load</button>
+                        <button id="delete-project-btn" class="btn bg-red-500 text-white hover:bg-red-600" data-lang-key="delete_btn">Delete</button>
+                    </div>
+                    <p id="project-status" class="text-sm text-gray-500 h-4"></p>
+                </div>
+            </section>
+
             <section id="overview" class="content-section card mb-10">
                 <div class="flex justify-between items-start">
                     <h2 class="section-title" data-lang-key="overview_title">1. Project Overview</h2>
                     <button id="generate-summary-btn" class="btn btn-ai text-sm py-2 px-3 no-print -mt-2 gap-2" data-lang-key="generate_summary_btn">✨ Generate Summary</button>
                 </div>
                 <div class="space-y-6">
-                    <div>
+                    <input type="hidden" id="project-id-input"> <div>
                         <label for="project-title-input" class="font-medium text-gray-700" data-lang-key="overview_project_title_label">Project Title</label>
                         <input id="project-title-input" type="text" data-lang-key="overview_project_title_placeholder" placeholder="Project Title" class="input-field text-lg font-semibold mt-1">
                     </div>
@@ -282,7 +356,7 @@
                         </div>
                         <div>
                            <label for="project-date" class="font-medium text-gray-700" data-lang-key="overview_date_label">Date</label>
-                           <input id="project-date" type="date" value="2025-07-04" class="input-field mt-1">
+                           <input id="project-date" type="date" value="2025-07-08" class="input-field mt-1">
                         </div>
                     </div>
                     <div>
@@ -293,7 +367,6 @@
                 </div>
             </section>
             
-            <!-- Section 2: Diagnosis -->
             <section id="diagnosis" class="content-section card mb-10">
                 <h2 class="section-title" data-lang-key="diagnosis_title">2. Client Needs and Problem Diagnosis</h2>
                 <div class="space-y-6">
@@ -307,16 +380,22 @@
                         <p class="text-sm text-gray-500 mb-2 no-print" data-lang-key="diagnosis_in_depth_desc">Detail your analysis of the client's situation and root causes.</p>
                         <textarea id="in-depth-diagnosis-textarea" class="input-field h-24" data-lang-key="diagnosis_in_depth_placeholder" placeholder="Findings from interviews, data analysis..."></textarea>
                     </div>
-                </section>
+                </div>
+            </section>
 
-            <!-- Section 3: Solution Analysis -->
             <section id="solution" class="content-section card mb-10">
                 <h2 class="section-title" data-lang-key="solution_title">3. System & Solution Analysis</h2>
                 <div class="grid md:grid-cols-2 gap-8">
                     <div>
                         <h3 class="font-semibold text-lg mb-2" data-lang-key="solution_current_system">The Current System (As-Is)</h3>
                         <p class="text-sm text-gray-500 mb-2 no-print" data-lang-key="solution_current_system_desc">Describe the current workflow and its pain points.</p>
-                        <textarea id="current-system-textarea" class="input-field h-32" data-lang-key="solution_current_system_placeholder" placeholder="Current process description..."></textarea>
+                        <textarea id="current-system-textarea" class="input-field h-32 mb-4" data-lang-key="solution_current_system_placeholder" placeholder="Current process description..."></textarea>
+                        
+                        <div class="image-upload-area" id="current-system-image-drop-zone">
+                            <p class="text-gray-500 text-sm" data-lang-key="visuals_placeholder_current">Drag & drop images here for Current System, or click to select files.</p>
+                            <input type="file" id="current-system-image-upload-input" class="hidden" accept="image/*" multiple>
+                            <div id="current-system-image-preview-container" class="image-preview-grid"></div>
+                        </div>
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-2">
@@ -324,29 +403,32 @@
                             <button id="brainstorm-solution-btn" class="btn btn-ai text-sm py-1 px-3 no-print gap-2" data-lang-key="brainstorm_btn">✨ Brainstorm</button>
                         </div>
                         <p class="text-sm text-gray-500 mb-2 no-print" data-lang-key="solution_proposed_system_desc">Describe the proposed solution and its benefits.</p>
-                        <textarea id="proposed-system-textarea" class="input-field h-32" data-lang-key="solution_proposed_system_placeholder" placeholder="Proposed solution benefits..."></textarea>
+                        <textarea id="proposed-system-textarea" class="input-field h-32 mb-4" data-lang-key="solution_proposed_system_placeholder" placeholder="Proposed solution benefits..."></textarea>
                         <p id="solution-ai-status" class="text-sm text-gray-500 mt-2 h-4"></p>
+
+                        <div class="image-upload-area" id="proposed-system-image-drop-zone">
+                            <p class="text-gray-500 text-sm" data-lang-key="visuals_placeholder_proposed">Drag & drop images here for Proposed System, or click to select files.</p>
+                            <input type="file" id="proposed-system-image-upload-input" class="hidden" accept="image/*" multiple>
+                            <div id="proposed-system-image-preview-container" class="image-preview-grid"></div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Section 4: Visuals & Diagrams -->
             <section id="visuals" class="content-section card mb-10">
-                <h2 class="section-title" data-lang-key="visuals_title">4. Visuals & Diagrams</h2>
-                <p class="text-sm text-gray-500 mb-4 no-print" data-lang-key="visuals_desc">Add any relevant images, flowcharts, or architecture diagrams to support your proposal.</p>
-                <div id="image-drop-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors">
-                    <div id="image-preview-container" class="flex flex-wrap gap-4 justify-center">
-                          <p id="image-placeholder" class="text-gray-500" data-lang-key="visuals_placeholder">Drag & drop images here, or click to select files.</p>
-                    </div>
-                     <input type="file" id="image-upload-input" class="hidden" accept="image/*" multiple>
+                <h2 class="section-title" data-lang-key="visuals_title">4. General Visuals & Diagrams</h2>
+                <p class="text-sm text-gray-500 mb-4 no-print" data-lang-key="visuals_desc">Add any relevant general images, flowcharts, or architecture diagrams to support your proposal.</p>
+                <div class="image-upload-area" id="general-image-drop-zone">
+                    <p id="general-image-placeholder" class="text-gray-500" data-lang-key="visuals_placeholder_general">Drag & drop images here, or click to select files.</p>
+                    <input type="file" id="general-image-upload-input" class="hidden" accept="image/*" multiple>
+                    <div id="general-image-preview-container" class="image-preview-grid"></div>
                 </div>
             </section>
 
-            <!-- Section 5: Viability -->
             <section id="viability" class="content-section card mb-10">
                 <h2 class="section-title" data-lang-key="viability_title">5. Viability and Justification</h2>
                 <div class="space-y-6">
-                     <div>
+                    <div>
                         <label for="viability-case-studies" class="font-medium text-gray-700 block mb-2" data-lang-key="viability_case_studies_label">Case Studies & Precedents</label>
                         <p class="text-sm text-gray-500 mb-2 no-print" data-lang-key="viability_case_studies_desc">Provide 1-2 brief examples of similar problems solved.</p>
                         <textarea id="viability-case-studies" class="input-field h-24" data-lang-key="viability_case_studies_placeholder" placeholder="e.g., 'A similar data integration challenge at Company X...'"></textarea>
@@ -359,22 +441,44 @@
                 </div>
             </section>
             
-            <!-- Section 6: Tool Selection -->
             <section id="tools" class="content-section card mb-10">
                 <h2 class="section-title" data-lang-key="tools_title">6. Tool Selection and Technical Specifications</h2>
-                 <div class="grid md:grid-cols-2 gap-12 items-start">
+                
+                <div class="flex gap-4 mb-6 no-print">
+                    <button id="show-system-tools-btn" class="btn btn-primary btn-sm" data-category="system">System Tools</button>
+                    <button id="show-visual-tools-btn" class="btn btn-secondary btn-sm" data-category="visual">Visual/Report Tools</button>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-12 items-start">
                     <div class="tool-controls">
-                        <h3 class="font-semibold text-lg mb-4" data-lang-key="tools_evaluation_label">Tool Evaluation</h3>
-                        <div id="tool-evaluation-list" class="space-y-4 mb-6"></div>
-                        <button id="show-add-tool-form-btn" class="btn btn-secondary w-full no-print">Add New Tool</button>
-                        <div id="add-tool-form" class="bg-gray-50 p-4 rounded-lg border mt-4 hidden no-print">
-                            <h4 class="font-semibold mb-3">Add New Tool</h4>
-                            <div class="space-y-3">
-                                <input type="text" id="new-tool-name" placeholder="Tool Name" class="input-field">
-                                <input type="number" id="new-tool-score" placeholder="Suitability Score (0-100)" class="input-field">
-                                <button id="add-tool-btn" class="btn btn-primary w-full">Add Tool</button>
+                        <h3 class="font-semibold text-lg mb-4" id="tool-evaluation-heading" data-lang-key="tools_evaluation_label">Tool Evaluation</h3>
+                        
+                        <div id="system-tool-controls" class="tool-category-controls">
+                             <div id="system-tool-evaluation-list" class="space-y-4 mb-6"></div>
+                            <button id="show-add-system-tool-form-btn" class="btn btn-secondary w-full no-print">Add New System Tool</button>
+                            <div id="add-system-tool-form" class="bg-gray-50 p-4 rounded-lg border mt-4 hidden no-print">
+                                <h4 class="font-semibold mb-3">Add New System Tool</h4>
+                                <div class="space-y-3">
+                                    <input type="text" id="new-system-tool-name" placeholder="Tool Name" class="input-field">
+                                    <input type="number" id="new-system-tool-score" placeholder="Suitability Score (0-100)" class="input-field">
+                                    <button id="add-system-tool-btn" class="btn btn-primary w-full">Add Tool</button>
+                                </div>
                             </div>
                         </div>
+
+                        <div id="visual-tool-controls" class="tool-category-controls hidden">
+                            <div id="visual-tool-evaluation-list" class="space-y-4 mb-6"></div>
+                            <button id="show-add-visual-tool-form-btn" class="btn btn-secondary w-full no-print">Add New Visual Tool</button>
+                            <div id="add-visual-tool-form" class="bg-gray-50 p-4 rounded-lg border mt-4 hidden no-print">
+                                <h4 class="font-semibold mb-3">Add New Visual Tool</h4>
+                                <div class="space-y-3">
+                                    <input type="text" id="new-visual-tool-name" placeholder="Tool Name" class="input-field">
+                                    <input type="number" id="new-visual-tool-score" placeholder="Suitability Score (0-100)" class="input-field">
+                                    <button id="add-visual-tool-btn" class="btn btn-primary w-full">Add Tool</button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                     <div class="chart-container">
                         <canvas id="toolChart"></canvas>
@@ -382,7 +486,6 @@
                 </div>
             </section>
             
-            <!-- Section 7: Project Plan -->
             <section id="plan" class="content-section card mb-10">
                 <h2 class="section-title" data-lang-key="plan_title">7. Project Plan and Deliverables</h2>
                 <div class="mb-6">
@@ -392,7 +495,7 @@
                     <div id="phase-details" class="mt-4 p-4 bg-gray-50 rounded-lg border hidden"></div>
                 </div>
                 <div class="mb-6 no-print">
-                     <div class="flex justify-between items-center mb-2">
+                    <div class="flex justify-between items-center mb-2">
                         <h3 class="font-semibold text-lg" data-lang-key="plan_ai_label">AI-Suggested Project Plan</h3>
                         <button id="suggest-plan-btn" class="btn btn-ai text-sm py-1 px-3 gap-2" data-lang-key="suggest_plan_btn">✨ Suggest Plan</button>
                     </div>
@@ -401,10 +504,10 @@
                     <p id="plan-ai-status" class="text-sm text-gray-500 mt-2 h-4"></p>
                 </div>
                 <div class="mb-6">
-                    <button id="toggle-deliverables-btn" class="btn btn-secondary w-full no-print" data-lang-key="plan_manage_deliverables_btn">Manage Deliverables Checklist</button>
+                    <button id="toggle-deliverables-btn" class="btn btn-secondary w-full no-print" data-lang-key="plan_manage_deliverables_btn">Manage Master Deliverables List</button>
                     <div id="manage-deliverables-container" class="hidden mt-4 border-t pt-4">
-                        <h3 class="font-semibold text-lg mb-2" data-lang-key="plan_checklist_label">Deliverables Checklist</h3>
-                        <p class="text-sm text-gray-500 mb-4 no-print" data-lang-key="plan_checklist_desc">Check off the key deliverables as they are completed.</p>
+                        <h3 class="font-semibold text-lg mb-2" data-lang-key="plan_checklist_label">Master Deliverables List</h3>
+                        <p class="text-sm text-gray-500 mb-4 no-print" data-lang-key="plan_checklist_desc">Add or remove from the master list of all possible project deliverables.</p>
                         <div id="deliverables-checklist" class="space-y-3"></div>
                         <div class="flex gap-2 mt-4 no-print">
                             <input type="text" id="new-deliverable-input" class="input-field" data-lang-key="plan_add_deliverable_placeholder" placeholder="Add a new deliverable...">
@@ -414,20 +517,18 @@
                 </div>
             </section>
             
-            <!-- Section SIPOC -->
             <section id="sipoc" class="content-section card mb-10">
                 <h2 class="section-title" data-lang-key="sipoc_title">SIPOC Diagram</h2>
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <!-- SIPOC Columns will be generated by JS -->
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4" id="sipoc-grid">
+                    <!-- SIPOC columns will be dynamically inserted here -->
                 </div>
             </section>
 
-            <!-- Section RASCI -->
             <section id="rasci" class="content-section card mb-10">
                 <h2 class="section-title" data-lang-key="rasci_title">RASCI Matrix</h2>
                 <div class="overflow-x-auto">
                     <table id="rasci-table" class="w-full text-sm text-left text-gray-500">
-                        <!-- RASCI Table content will be generated by JS -->
+                        <!-- RASCI table will be dynamically inserted here -->
                     </table>
                 </div>
                 <div class="flex gap-4 mt-4 no-print">
@@ -440,7 +541,6 @@
                 </div>
             </section>
 
-            <!-- Section 8: Cost & Timeline -->
             <section id="cost" class="content-section card mb-10">
                 <h2 class="section-title" data-lang-key="cost_title">8. Cost and Timeline</h2>
                 <div class="grid md:grid-cols-2 gap-12 items-center">
@@ -471,7 +571,6 @@
                 </div>
             </section>
 
-            <!-- Section 9: Terms and Conditions -->
             <section id="terms" class="content-section card mb-10">
                 <h2 class="section-title" data-lang-key="terms_title">9. Terms and Conditions</h2>
                 <div class="space-y-4">
@@ -479,25 +578,24 @@
                 </div>
             </section>
 
-            <!-- Section 10: Sign-Off -->
             <section id="signoff" class="content-section card mb-10">
                 <h2 class="section-title" data-lang-key="signoff_title">10. Alignment and Sign-Off</h2>
                 <p class="text-gray-600 mb-6" data-lang-key="signoff_desc">By signing below, both parties agree to the plan laid out in this document.</p>
                 <div class="grid md:grid-cols-2 gap-8">
-                     <div>
+                    <div>
                         <h3 class="font-semibold text-lg mb-2">For DHL</h3>
                         <canvas id="signature-pad-1" class="bg-gray-100 border border-gray-300 rounded-lg w-full h-32 cursor-crosshair"></canvas>
                         <div class="mt-2 text-right">
                             <button class="btn btn-secondary text-sm no-print" data-canvas="signature-pad-1" data-lang-key="clear_btn">Clear</button>
                         </div>
-                     </div>
-                     <div>
+                    </div>
+                    <div>
                         <h3 id="client-signature-label" class="font-semibold text-lg mb-2" data-lang-key="signoff_client_name_label">For [Client Name]</h3>
                         <canvas id="signature-pad-2" class="bg-gray-100 border border-gray-300 rounded-lg w-full h-32 cursor-crosshair"></canvas>
                         <div class="mt-2 text-right">
                             <button class="btn btn-secondary text-sm no-print" data-canvas="signature-pad-2" data-lang-key="clear_btn_2">Clear</button>
                         </div>
-                     </div>
+                    </div>
                 </div>
             </section>
 
@@ -556,69 +654,263 @@ document.addEventListener('DOMContentLoaded', function() {
         en: {
             proposal_title_nav: "Project Proposal", nav_overview: "Overview", nav_diagnosis: "Diagnosis", nav_solution: "Solution Analysis", nav_visuals: "Visuals", nav_viability: "Viability", nav_tools: "Tool Selection", nav_plan: "Project Plan", nav_sipoc: "SIPOC Diagram", nav_rasci: "RASCI Matrix", nav_cost: "Cost & Timeline", nav_terms: "Terms", nav_signoff: "Sign-Off",
             main_header_title: "Project Proposal Document",
+            project_management_title: "Project Management", new_project_btn: "New Project", save_project_btn: "Save Current Project", load_project_placeholder: "-- Load Existing Project --", load_btn: "Load", delete_btn: "Delete",
             overview_title: "1. Project Overview", overview_project_title_label: "Project Title", overview_client_name_label: "Client Name", overview_date_label: "Date", overview_summary_label: "Executive Summary", generate_summary_btn: "✨ Generate Summary", overview_project_title_placeholder: "Project Title", overview_client_name_placeholder: "Client Name", overview_summary_placeholder: "Executive Summary: A brief, high-level summary of the project...",
             diagnosis_title: "2. Client Needs and Problem Diagnosis", diagnosis_request_label: "Initial Client Request", diagnosis_request_desc: "Describe the problem or need as it was initially presented by the client.", diagnosis_request_placeholder: "Client's pain points, goals...", diagnosis_in_depth_label: "In-Depth Diagnosis", diagnosis_in_depth_desc: "Detail your analysis of the client's situation and root causes.", diagnosis_in_depth_placeholder: "Findings from interviews, data analysis...",
             solution_title: "3. System & Solution Analysis", solution_current_system: "The Current System (As-Is)", solution_current_system_desc: "Describe the current workflow and its pain points.", solution_current_system_placeholder: "Current process description...", solution_proposed_system: "The Proposed System (To-Be)", solution_proposed_system_desc: "Describe the proposed solution and its benefits.", solution_proposed_system_placeholder: "Proposed solution benefits...", brainstorm_btn: "✨ Brainstorm",
-            visuals_title: "4. Visuals & Diagrams", visuals_desc: "Add any relevant images, flowcharts, or architecture diagrams to support your proposal.", visuals_placeholder: "Drag & drop images here, or click to select files.",
+            visuals_title: "4. General Visuals & Diagrams", visuals_desc: "Add any relevant general images, flowcharts, or architecture diagrams to support your proposal.", visuals_placeholder_general: "Drag & drop images here, or click to select files.", visuals_placeholder_current: "Drag & drop images here for Current System, or click to select files.", visuals_placeholder_proposed: "Drag & drop images here for Proposed System, or click to select files.",
             viability_title: "5. Viability and Justification", viability_case_studies_label: "Case Studies & Precedents", viability_case_studies_desc: "Provide 1-2 brief examples of similar problems solved.", viability_case_studies_placeholder: "e.g., 'A similar data integration challenge at Company X...'", viability_assessment_label: "Viability Assessment", viability_assessment_desc: "Assess technical, operational, and economic viability.", viability_assessment_placeholder: "Is the technology mature? Does the cost justify the benefit?",
             tools_title: "6. Tool Selection and Technical Specifications", tools_evaluation_label: "Tool Evaluation",
-            plan_title: "7. Project Plan and Deliverables", plan_timeline_label: "Interactive Project Timeline", plan_timeline_desc: "Click on a phase to see details and add comments.", plan_ai_label: "AI-Suggested Project Plan", plan_ai_desc: "Use the proposed solution to generate a draft project plan.", plan_ai_placeholder: "AI-generated plan will appear here...", suggest_plan_btn: "✨ Suggest Plan", plan_checklist_label: "Deliverables Checklist", plan_manage_deliverables_btn: "Manage Deliverables Checklist", plan_checklist_desc: "Check off the key deliverables as they are completed.", plan_add_deliverable_placeholder: "Add a new deliverable...", plan_add_btn: "Add",
+            plan_title: "7. Project Plan and Deliverables", plan_timeline_label: "Interactive Project Timeline", plan_timeline_desc: "Click on a phase to see details and add comments.", plan_ai_label: "AI-Suggested Project Plan", plan_ai_desc: "Use the proposed solution to generate a draft project plan.", plan_ai_placeholder: "AI-generated plan will appear here...", suggest_plan_btn: "✨ Suggest Plan", plan_checklist_label: "Master Deliverables List", plan_manage_deliverables_btn: "Manage Master Deliverables List", plan_checklist_desc: "Add or remove from the master list of all possible project deliverables.", plan_add_deliverable_placeholder: "Add a new deliverable...", plan_add_btn: "Add",
             sipoc_title: "SIPOC Diagram",
             rasci_title: "RASCI Matrix",
-            cost_title: "8. Cost and Timeline", cost_breakdown_label: "Cost Breakdown", cost_breakdown_desc: "Enter the costs to see a live update of the total and chart.", cost_consulting_label: "Development & Consulting (One-Time)", cost_licensing_label: "Software Licensing (Recurring)", cost_other_label: "Other", cost_total_label: "Total",
+            cost_title: "8. Cost & Timeline", cost_breakdown_label: "Cost Breakdown", cost_breakdown_desc: "Enter the costs to see a live update of the total and chart.", cost_consulting_label: "Development & Consulting (One-Time)", cost_licensing_label: "Software Licensing (Recurring)", cost_other_label: "Other", cost_total_label: "Total",
             terms_title: "9. Terms and Conditions", terms_placeholder: "This document constitutes the entire agreement...",
             signoff_title: "10. Alignment and Sign-Off", signoff_desc: "By signing below, both parties agree to the plan laid out in this document.", signoff_your_company_label: "For [Your Company/Name]", signoff_client_name_label: "For [Client Name]", clear_btn: "Clear", clear_btn_2: "Clear",
-            add_edit_comment_btn: "Add/Edit Comment", comment_placeholder: "Enter comments for {phaseName}..."
+            add_edit_comment_btn: "Add/Edit Comment", comment_placeholder: "Enter comments for {phaseName}...",
+            deliverables_for_phase: "Deliverables for this Phase"
         },
         pt: {
             proposal_title_nav: "Proposta de Projeto", nav_overview: "Visão Geral", nav_diagnosis: "Diagnóstico", nav_solution: "Análise da Solução", nav_visuals: "Visuais", nav_viability: "Viabilidade", nav_tools: "Seleção de Ferramentas", nav_plan: "Plano do Projeto", nav_sipoc: "Diagrama SIPOC", nav_rasci: "Matriz RASCI", nav_cost: "Custo e Cronograma", nav_terms: "Termos", nav_signoff: "Aprovação",
             main_header_title: "Documento de Proposta de Projeto",
-            overview_title: "1. Visão Geral do Projeto", overview_project_title_label: "Título do Projeto", overview_client_name_label: "Nome do Cliente", overview_date_label: "Data", overview_summary_label: "Resumo Executivo", generate_summary_btn: "✨ Gerar Resumo", overview_project_title_placeholder: "Título do Projeto", overview_client_name_placeholder: "Nome do Cliente", overview_summary_placeholder: "Resumo Executivo: Um breve resumo de alto nível do projeto...",
-            diagnosis_title: "2. Necessidades do Cliente e Diagnóstico do Problema", diagnosis_request_label: "Solicitação Inicial do Cliente", diagnosis_request_desc: "Descreva o problema ou necessidade conforme apresentado inicialmente pelo cliente.", diagnosis_request_placeholder: "Pontos de dor do cliente, objetivos...", diagnosis_in_depth_label: "Diagnóstico Aprofundado", diagnosis_in_depth_desc: "Detalhe sua análise da situação do cliente e as causas raízes.", diagnosis_in_depth_placeholder: "Resultados de entrevistas, análise de dados...",
-            solution_title: "3. Análise do Sistema e da Solução", solution_current_system: "O Sistema Atual (Como Está)", solution_current_system_desc: "Descreva o fluxo de trabalho atual e seus pontos de dor.", solution_current_system_placeholder: "Descrição do processo atual...", solution_proposed_system: "O Sistema Proposto (Como Será)", solution_proposed_system_desc: "Descreva a solução proposta e seus benefícios.", solution_proposed_system_placeholder: "Benefícios da solução proposta...", brainstorm_btn: "✨ Brainstorm",
-            visuals_title: "4. Visuais e Diagramas", visuals_desc: "Adicione quaisquer imagens, fluxogramas ou diagramas de arquitetura relevantes para apoiar sua proposta.", visuals_placeholder: "Arraste e solte imagens aqui, ou clique para selecionar arquivos.",
-            viability_title: "5. Viabilidade e Justificativa", viability_case_studies_label: "Estudos de Caso e Precedentes", viability_case_studies_desc: "Forneça 1-2 exemplos breves de problemas semelhantes resolvidos.", viability_case_studies_placeholder: "Ex: 'Um desafio semelhante de integração de dados na Empresa X...'", viability_assessment_label: "Avaliação de Viabilidade", viability_assessment_desc: "Avalie a viabilidade técnica, operacional e econômica.", viability_assessment_placeholder: "A tecnologia é madura? O custo justifica o benefício?",
+            project_management_title: "Gerenciamento de Projeto", new_project_btn: "Novo Projeto", save_project_btn: "Salvar Projeto Atual", load_project_placeholder: "-- Carregar Projeto Existente --", load_btn: "Carregar", delete_btn: "Excluir",
+            overview_title: "1. Visão Geral do Projeto", overview_project_title_label: "Título do Projeto", overview_client_name_label: "Nome do Cliente", overview_date_label: "Data", overview_summary_label: "Sumário Executivo", generate_summary_btn: "✨ Gerar Sumário", overview_project_title_placeholder: "Título do Projeto", overview_client_name_placeholder: "Nome do Cliente", overview_summary_placeholder: "Sumário Executivo: Um resumo breve e de alto nível do projeto...",
+            diagnosis_title: "2. Necessidades do Cliente e Diagnóstico do Problema", diagnosis_request_label: "Solicitação Inicial do Cliente", diagnosis_request_desc: "Descreva o problema ou necessidade como foi apresentado inicialmente pelo cliente.", diagnosis_request_placeholder: "Pontos de dor do cliente, objetivos...", diagnosis_in_depth_label: "Diagnóstico Aprofundado", diagnosis_in_depth_desc: "Detalhe sua análise da situação do cliente e as causas raiz.", diagnosis_in_depth_placeholder: "Resultados de entrevistas, análise de dados...",
+            solution_title: "3. Análise do Sistema e da Solução", solution_current_system: "O Sistema Atual (As-Is)", solution_current_system_desc: "Descreva o fluxo de trabalho atual e seus pontos de dor.", solution_current_system_placeholder: "Descrição do processo atual...", solution_proposed_system: "O Sistema Proposto (To-Be)", solution_proposed_system_desc: "Descreva a solução proposta e seus benefícios.", solution_proposed_system_placeholder: "Benefícios da solução proposta...", brainstorm_btn: "✨ Brainstorm",
+            visuals_title: "4. Visuais e Diagramas Gerais", visuals_desc: "Adicione quaisquer imagens, fluxogramas ou diagramas de arquitetura gerais relevantes para apoiar sua proposta.", visuals_placeholder_general: "Arraste e solte imagens aqui, ou clique para selecionar arquivos.", visuals_placeholder_current: "Arraste e solte imagens aqui para o Sistema Atual, ou clique para selecionar.", visuals_placeholder_proposed: "Arraste e solte imagens aqui para o Sistema Proposto, ou clique para selecionar.",
+            viability_title: "5. Viabilidade e Justificativa", viability_case_studies_label: "Estudos de Caso e Precedentes", viability_case_studies_desc: "Forneça 1-2 exemplos breves de problemas semelhantes resolvidos.", viability_case_studies_placeholder: "ex: 'Um desafio de integração de dados semelhante na Empresa X...'", viability_assessment_label: "Avaliação de Viabilidade", viability_assessment_desc: "Avalie a viabilidade técnica, operacional e econômica.", viability_assessment_placeholder: "A tecnologia é madura? O custo justifica o benefício?",
             tools_title: "6. Seleção de Ferramentas e Especificações Técnicas", tools_evaluation_label: "Avaliação de Ferramentas",
-            plan_title: "7. Plano do Projeto e Entregáveis", plan_timeline_label: "Cronograma Interativo do Projeto", plan_timeline_desc: "Clique em uma fase para ver detalhes e adicionar comentários.", plan_ai_label: "Plano de Projeto Sugerido por IA", plan_ai_desc: "Use a solução proposta para gerar um rascunho do plano de projeto.", plan_ai_placeholder: "O plano gerado por IA aparecerá aqui...", suggest_plan_btn: "✨ Sugerir Plano", plan_checklist_label: "Checklist de Entregáveis", plan_manage_deliverables_btn: "Gerenciar Checklist de Entregáveis", plan_checklist_desc: "Marque os entregáveis principais à medida que são concluídos.", plan_add_deliverable_placeholder: "Adicionar novo entregável...", plan_add_btn: "Adicionar",
+            plan_title: "7. Plano do Projeto e Entregáveis", plan_timeline_label: "Cronograma Interativo do Projeto", plan_timeline_desc: "Clique em uma fase para ver detalhes e adicionar comentários.", plan_ai_label: "Plano de Projeto Sugerido por IA", plan_ai_desc: "Use a solução proposta para gerar um rascunho do plano do projeto.", plan_ai_placeholder: "O plano gerado por IA aparecerá aqui...", suggest_plan_btn: "✨ Sugerir Plano", plan_checklist_label: "Lista Mestra de Entregáveis", plan_manage_deliverables_btn: "Gerenciar Lista Mestra de Entregáveis", plan_checklist_desc: "Adicione ou remova da lista mestra de todos os possíveis entregáveis do projeto.", plan_add_deliverable_placeholder: "Adicionar um novo entregável...", plan_add_btn: "Adicionar",
             sipoc_title: "Diagrama SIPOC",
             rasci_title: "Matriz RASCI",
             cost_title: "8. Custo e Cronograma", cost_breakdown_label: "Detalhamento de Custos", cost_breakdown_desc: "Insira os custos para ver uma atualização ao vivo do total e do gráfico.", cost_consulting_label: "Desenvolvimento e Consultoria (Único)", cost_licensing_label: "Licenciamento de Software (Recorrente)", cost_other_label: "Outros", cost_total_label: "Total",
             terms_title: "9. Termos e Condições", terms_placeholder: "Este documento constitui o acordo integral...",
-            signoff_title: "10. Alinhamento e Aprovação", signoff_desc: "Ao assinar abaixo, ambas as partes concordam com o plano estabelecido neste documento.", signoff_your_company_label: "Por [Sua Empresa/Nome]", signoff_client_name_label: "Por [Nome do Cliente]", clear_btn: "Limpar", clear_btn_2: "Limpar",
-            add_edit_comment_btn: "Adicionar/Editar Comentário", comment_placeholder: "Insira comentários para {phaseName}..."
+            signoff_title: "10. Alinhamento e Aprovação", signoff_desc: "Ao assinar abaixo, ambas as partes concordam com o plano estabelecido neste documento.", signoff_your_company_label: "Para [Sua Empresa/Nome]", signoff_client_name_label: "Para [Nome do Cliente]", clear_btn: "Limpar", clear_btn_2: "Limpar",
+            add_edit_comment_btn: "Adicionar/Editar Comentário", comment_placeholder: "Insira comentários para {phaseName}...",
+            deliverables_for_phase: "Entregáveis para esta Fase"
         }
     };
     let currentLanguage = 'en';
 
     // --- Data Stores ---
-    let toolData = [
-        { name: 'Power BI', score: 90, description: 'Excellent for interactive dashboards and data visualization.' },
-        { name: 'Python', score: 75, description: 'Ideal for complex data manipulation and custom scripting.' },
-        { name: 'Power Automate', score: 85, description: 'Best for automating workflows across Microsoft 365.' },
-        { name: 'Power Apps', score: 70, description: 'Rapid development of low-code internal applications.' },
-        { name: 'UiPath', score: 60, description: 'Powerful for RPA and automating legacy systems.' }
-    ];
-    let projectPhases = [
+    let systemToolData = [];
+    let visualToolData = [];
+    let activeToolCategory = 'system'; // 'system' or 'visual'
+
+    const defaultProjectPhases = [
         { name: 'Discovery', name_pt: 'Descoberta', duration: 1, details: 'Finalize requirements, project setup.', deliverables: ['Signed Proposal Document'], comments: '' },
         { name: 'Development', name_pt: 'Desenvolvimento', duration: 3, details: 'Build solution, configure tools.', deliverables: ['Functional Power BI Dashboard'], comments: '' },
         { name: 'Testing', name_pt: 'Testes', duration: 1, details: 'User Acceptance Testing, bug fixes.', deliverables: ['UAT Sign-off Sheet'], comments: '' },
         { name: 'Deployment', name_pt: 'Implantação', duration: 1, details: 'Go-live, user training, documentation.', deliverables: ['User Manual & Training Session'], comments: '' }
     ];
-    let allDeliverables = ['Signed Proposal Document', 'Functional Power BI Dashboard', 'UAT Sign-off Sheet', 'User Manual & Training Session'];
-    let rasciData = {
+    let projectPhases = [];
+
+    const defaultAllDeliverables = ['Signed Proposal Document', 'Functional Power BI Dashboard', 'UAT Sign-off Sheet', 'User Manual & Training Session'];
+    let allDeliverables = [];
+
+    const defaultRasciData = {
         roles: ['Project Manager', 'Developer', 'Client Stakeholder'],
         tasks: [
             { name: 'Project Kick-off', assignments: {'Project Manager': 'R', 'Developer': 'S', 'Client Stakeholder': 'C'} },
             { name: 'Dashboard Development', assignments: {'Project Manager': 'A', 'Developer': 'R', 'Client Stakeholder': 'I'} }
         ]
     };
-    let sipocData = {
+    let rasciData = {};
+
+    const defaultSipocData = {
         Suppliers: ['IT Department', 'Business Users'],
         Inputs: ['Data Sources', 'User Requirements'],
         Process: ['Data Extraction', 'Dashboard Creation', 'User Testing'],
         Outputs: ['Functional Dashboard', 'User Manual'],
         Customers: ['Management', 'Sales Team']
     };
+    let sipocData = {};
+
+    const uploadedImages = {
+        general: [],
+        currentSystem: [],
+        proposedSystem: []
+    };
+
+    // --- Project Data Object & Local Storage ---
+    let currentProjectId = null;
+
+    function generateUniqueId() {
+        return 'proj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function getProjectData() {
+        return {
+            projectId: document.getElementById('project-id-input').value || generateUniqueId(),
+            projectTitle: document.getElementById('project-title-input').value,
+            clientName: document.getElementById('client-name-input').value,
+            projectDate: document.getElementById('project-date').value,
+            executiveSummary: document.getElementById('executive-summary-textarea').value,
+            clientRequest: document.getElementById('client-request-textarea').value,
+            inDepthDiagnosis: document.getElementById('in-depth-diagnosis-textarea').value,
+            currentSystem: document.getElementById('current-system-textarea').value,
+            proposedSystem: document.getElementById('proposed-system-textarea').value,
+            terms: document.getElementById('terms-textarea').value,
+            systemToolData: systemToolData,
+            visualToolData: visualToolData,
+            projectPhases: projectPhases,
+            allDeliverables: allDeliverables,
+            rasciData: rasciData,
+            sipocData: sipocData,
+            uploadedImages: uploadedImages,
+            costData: {
+                consulting: parseFloat(document.querySelector('.cost-input[data-name="Consulting"]').value) || 0,
+                licensing: parseFloat(document.querySelector('.cost-input[data-name="Licensing"]').value) || 0,
+                other: parseFloat(document.querySelector('.cost-input[data-name="Other"]').value) || 0
+            }
+        };
+    }
+
+    function populateUI(data) {
+        document.getElementById('project-id-input').value = data.projectId || '';
+        document.getElementById('project-title-input').value = data.projectTitle || '';
+        document.getElementById('client-name-input').value = data.clientName || '';
+        document.getElementById('project-date').value = data.projectDate || '';
+        document.getElementById('executive-summary-textarea').value = data.executiveSummary || '';
+        document.getElementById('client-request-textarea').value = data.clientRequest || '';
+        document.getElementById('in-depth-diagnosis-textarea').value = data.inDepthDiagnosis || '';
+        document.getElementById('current-system-textarea').value = data.currentSystem || '';
+        document.getElementById('proposed-system-textarea').value = data.proposedSystem || '';
+        document.getElementById('terms-textarea').value = data.terms || '';
+
+        systemToolData = data.systemToolData || [];
+        visualToolData = data.visualToolData || [];
+        projectPhases = data.projectPhases || [];
+        allDeliverables = data.allDeliverables || [];
+        rasciData = data.rasciData || { roles: [], tasks: [] };
+        sipocData = data.sipocData || { Suppliers: [], Inputs: [], Process: [], Outputs: [], Customers: [] };
+        Object.assign(uploadedImages, { general: [], currentSystem: [], proposedSystem: [] });
+        Object.assign(uploadedImages, data.uploadedImages);
+
+        document.querySelector('.cost-input[data-name="Consulting"]').value = data.costData?.consulting || 0;
+        document.querySelector('.cost-input[data-name="Licensing"]').value = data.costData?.licensing || 0;
+        document.querySelector('.cost-input[data-name="Other"]').value = data.costData?.other || 0;
+
+        renderToolSection();
+        renderTimeline();
+        renderDeliverablesChecklist();
+        renderSipoc();
+        renderRasci();
+        updateCostChart();
+        setupSignaturePad('signature-pad-1');
+        setupSignaturePad('signature-pad-2');
+        clientNameInput.dispatchEvent(new Event('input'));
+        
+        renderImagePreviews('general', 'general-image-preview-container');
+        renderImagePreviews('currentSystem', 'current-system-image-preview-container');
+        renderImagePreviews('proposedSystem', 'proposed-system-image-preview-container');
+
+        currentProjectId = data.projectId;
+        document.getElementById('project-status').textContent = `Project "${data.projectTitle || 'Untitled'}" loaded.`;
+    }
+
+    function saveProject() {
+        const project = getProjectData();
+        if (!project.projectTitle) {
+            alert("Please enter a project title before saving.");
+            return;
+        }
+        const key = `project_${project.projectId}`;
+        localStorage.setItem(key, JSON.stringify(project));
+        updateProjectList();
+        document.getElementById('project-status').textContent = `Project "${project.projectTitle}" saved!`;
+        currentProjectId = project.projectId;
+    }
+
+    function loadProjectByKey(key) {
+        const data = localStorage.getItem(key);
+        if (data) {
+            populateUI(JSON.parse(data));
+        } else {
+            document.getElementById('project-status').textContent = 'Project not found!';
+        }
+    }
+
+    function deleteProjectByKey(key) {
+        if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+            localStorage.removeItem(key);
+            updateProjectList();
+            if (currentProjectId === key.replace('project_', '')) {
+                newProject();
+                document.getElementById('project-status').textContent = 'Current project deleted. A new project has been created.';
+            } else {
+                document.getElementById('project-status').textContent = 'Project deleted.';
+            }
+        }
+    }
+
+    function updateProjectList() {
+        const select = document.getElementById('load-project-select');
+        select.innerHTML = `<option value="">-- ${i18n[currentLanguage].load_project_placeholder} --</option>`;
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('project_')) {
+                try {
+                    const project = JSON.parse(localStorage.getItem(key));
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = `${project.projectTitle || 'Untitled Project'} (${project.clientName || 'No Client'}) - ${project.projectDate || 'No Date'}`;
+                    select.appendChild(option);
+                } catch (e) {
+                    console.error("Error parsing project from local storage:", key, e);
+                    localStorage.removeItem(key);
+                }
+            }
+        }
+    }
+
+    function newProject() {
+        const emptyData = {
+            projectId: generateUniqueId(),
+            projectTitle: '', clientName: '', projectDate: new Date().toISOString().slice(0,10),
+            executiveSummary: '', clientRequest: '', inDepthDiagnosis: '',
+            currentSystem: '', proposedSystem: '', terms: '',
+            systemToolData: [
+                { name: 'Python', score: 90, description: 'Excellent for data processing and backend logic.' },
+                { name: 'SQL Server', score: 85, description: 'Robust database management system.' },
+            ],
+            visualToolData: [
+                 { name: 'Power BI', score: 95, description: 'Leading tool for interactive dashboards and reports.' },
+                 { name: 'Tableau', score: 80, description: 'Strong alternative for data visualization.' },
+            ],
+            projectPhases: JSON.parse(JSON.stringify(defaultProjectPhases)),
+            allDeliverables: [...defaultAllDeliverables],
+            rasciData: JSON.parse(JSON.stringify(defaultRasciData)),
+            sipocData: JSON.parse(JSON.stringify(defaultSipocData)),
+            uploadedImages: { general: [], currentSystem: [], proposedSystem: [] },
+            costData: { consulting: 0, licensing: 0, other: 0 }
+        };
+        populateUI(emptyData);
+        document.getElementById('project-status').textContent = 'New project created. Remember to save!';
+        currentProjectId = emptyData.projectId;
+        document.getElementById('project-date').value = new Date().toISOString().slice(0,10);
+    }
+
+    // --- Event Listeners for Project Management ---
+    document.getElementById('new-project-btn')?.addEventListener('click', newProject);
+    document.getElementById('save-project-btn')?.addEventListener('click', saveProject);
+    document.getElementById('load-project-btn')?.addEventListener('click', () => {
+        const selectedKey = document.getElementById('load-project-select').value;
+        if (selectedKey) {
+            loadProjectByKey(selectedKey);
+        } else {
+            document.getElementById('project-status').textContent = 'Please select a project to load.';
+        }
+    });
+    document.getElementById('delete-project-btn')?.addEventListener('click', () => {
+        const selectedKey = document.getElementById('load-project-select').value;
+        if (selectedKey) {
+            deleteProjectByKey(selectedKey);
+        } else {
+            document.getElementById('project-status').textContent = 'Please select a project to delete.';
+        }
+    });
+
 
     // --- Language Switcher ---
     const languageSwitcher = document.getElementById('language-switcher');
@@ -628,12 +920,17 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('[data-lang-key]').forEach(el => {
             const key = el.dataset.langKey;
             const text = (i18n[lang] && i18n[lang][key]) || i18n['en'][key];
-            if (el.placeholder) el.placeholder = text;
-            else el.innerHTML = text;
+            
+            if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                 if (el.placeholder) el.placeholder = text;
+            } else {
+                 el.innerHTML = text;
+            }
         });
         populateMobileNav();
         renderTimeline();
         renderDeliverablesChecklist();
+        updateProjectList(); // Update project list dropdown with correct language
         if(document.getElementById('phase-details')) document.getElementById('phase-details').classList.add('hidden');
     }
     if(languageSwitcher) languageSwitcher.addEventListener('change', (e) => setLanguage(e.target.value));
@@ -682,77 +979,128 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Tool Evaluation Chart & Dynamic Management ---
-    const toolListContainer = document.getElementById('tool-evaluation-list');
     const toolCtx = document.getElementById('toolChart').getContext('2d');
-    const showAddToolFormBtn = document.getElementById('show-add-tool-form-btn');
-    const addToolForm = document.getElementById('add-tool-form');
-    const addToolBtn = document.getElementById('add-tool-btn');
-    const newToolNameInput = document.getElementById('new-tool-name');
-    const newToolScoreInput = document.getElementById('new-tool-score');
-    
     let toolChart = new Chart(toolCtx, {
         type: 'bar',
         data: { labels: [], datasets: [{ label: 'Suitability Score', data: [], backgroundColor: 'rgba(59, 130, 246, 0.5)', borderColor: 'rgba(59, 130, 246, 1)', borderWidth: 1, borderRadius: 4 }] },
         options: {
             indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => toolData[c.dataIndex].description || `Score: ${c.raw}` } } },
+            plugins: { legend: { display: false }, tooltip: { callbacks: { 
+                label: (c) => {
+                    const data = activeToolCategory === 'system' ? systemToolData : visualToolData;
+                    return data[c.dataIndex].description || `Score: ${c.raw}`;
+                } 
+            } } },
             scales: { x: { max: 100, beginAtZero: true, grid: { color: '#e5e7eb' } }, y: { grid: { display: false } } }
         }
     });
 
-    function renderToolSection() {
-        toolListContainer.innerHTML = '';
+    function renderToolCategory(category) {
+        const toolData = category === 'system' ? systemToolData : visualToolData;
+        const listContainer = document.getElementById(`${category}-tool-evaluation-list`);
+        listContainer.innerHTML = '';
         toolData.forEach((tool, index) => {
             const div = document.createElement('div');
             div.innerHTML = `
                 <div class="flex justify-between items-center mb-1">
                     <label class="font-medium">${tool.name}</label>
                     <div class="flex items-center gap-2">
-                        <span class="text-sm font-bold text-blue-600" id="tool-score-label-${index}">${tool.score}</span>
-                        <button class="remove-tool-btn text-gray-400 hover:text-red-500 no-print" data-index="${index}">
+                        <span class="text-sm font-bold text-blue-600" id="tool-score-label-${category}-${index}">${tool.score}</span>
+                        <button class="remove-tool-btn text-gray-400 hover:text-red-500 no-print" data-category="${category}" data-index="${index}">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                         </button>
                     </div>
                 </div>
-                <input type="range" min="0" max="100" value="${tool.score}" class="w-full tool-rating-slider" data-index="${index}">`;
-            toolListContainer.appendChild(div);
+                <input type="range" min="0" max="100" value="${tool.score}" class="w-full tool-rating-slider" data-category="${category}" data-index="${index}">`;
+            listContainer.appendChild(div);
         });
+    }
+
+    function updateToolChart() {
+        const toolData = activeToolCategory === 'system' ? systemToolData : visualToolData;
         toolChart.data.labels = toolData.map(t => t.name);
         toolChart.data.datasets[0].data = toolData.map(t => t.score);
         toolChart.update();
     }
-    toolListContainer.addEventListener('input', (e) => {
+
+    function renderToolSection() {
+        renderToolCategory('system');
+        renderToolCategory('visual');
+        updateToolChart();
+    }
+
+    document.getElementById('tools').addEventListener('input', (e) => {
         if (e.target.classList.contains('tool-rating-slider')) {
+            const category = e.target.dataset.category;
             const index = e.target.dataset.index;
             const newScore = parseInt(e.target.value, 10);
+            const toolData = category === 'system' ? systemToolData : visualToolData;
             toolData[index].score = newScore;
-            document.getElementById(`tool-score-label-${index}`).textContent = newScore;
-            toolChart.data.datasets[0].data = toolData.map(t => t.score);
-            toolChart.update();
+            document.getElementById(`tool-score-label-${category}-${index}`).textContent = newScore;
+            if (category === activeToolCategory) {
+                updateToolChart();
+            }
         }
     });
-    toolListContainer.addEventListener('click', (e) => {
+
+    document.getElementById('tools').addEventListener('click', (e) => {
         const removeButton = e.target.closest('.remove-tool-btn');
         if (removeButton) {
-            toolData.splice(removeButton.dataset.index, 1);
-            renderToolSection();
+            const category = removeButton.dataset.category;
+            const index = removeButton.dataset.index;
+            const toolData = category === 'system' ? systemToolData : visualToolData;
+            toolData.splice(index, 1);
+            renderToolCategory(category);
+            if (category === activeToolCategory) {
+                updateToolChart();
+            }
         }
     });
-    showAddToolFormBtn.addEventListener('click', () => {
-        addToolForm.classList.toggle('hidden');
-    });
-    addToolBtn.addEventListener('click', () => {
-        const name = newToolNameInput.value.trim();
-        const score = parseInt(newToolScoreInput.value, 10);
+
+    function addTool(category) {
+        const nameInput = document.getElementById(`new-${category}-tool-name`);
+        const scoreInput = document.getElementById(`new-${category}-tool-score`);
+        const name = nameInput.value.trim();
+        const score = parseInt(scoreInput.value, 10);
         if (name && !isNaN(score) && score >= 0 && score <= 100) {
+            const toolData = category === 'system' ? systemToolData : visualToolData;
             toolData.push({ name, score, description: `Score: ${score}` });
-            newToolNameInput.value = ''; newToolScoreInput.value = '';
-            addToolForm.classList.add('hidden');
-            renderToolSection();
+            nameInput.value = '';
+            scoreInput.value = '';
+            document.getElementById(`add-${category}-tool-form`).classList.add('hidden');
+            renderToolCategory(category);
+            if (category === activeToolCategory) {
+                updateToolChart();
+            }
         } else {
             alert('Please enter a valid tool name and a score between 0 and 100.');
         }
-    });
+    }
+    
+    document.getElementById('add-system-tool-btn').addEventListener('click', () => addTool('system'));
+    document.getElementById('add-visual-tool-btn').addEventListener('click', () => addTool('visual'));
+    
+    document.getElementById('show-add-system-tool-form-btn').addEventListener('click', () => document.getElementById('add-system-tool-form').classList.toggle('hidden'));
+    document.getElementById('show-add-visual-tool-form-btn').addEventListener('click', () => document.getElementById('add-visual-tool-form').classList.toggle('hidden'));
+
+    function switchToolCategory(category) {
+        activeToolCategory = category;
+        document.getElementById('system-tool-controls').classList.toggle('hidden', category !== 'system');
+        document.getElementById('visual-tool-controls').classList.toggle('hidden', category !== 'visual');
+        
+        const systemBtn = document.getElementById('show-system-tools-btn');
+        const visualBtn = document.getElementById('show-visual-tools-btn');
+        systemBtn.classList.toggle('btn-primary', category === 'system');
+        systemBtn.classList.toggle('btn-secondary', category !== 'system');
+        visualBtn.classList.toggle('btn-primary', category === 'visual');
+        visualBtn.classList.toggle('btn-secondary', category !== 'visual');
+
+        updateToolChart();
+    }
+
+    document.getElementById('show-system-tools-btn').addEventListener('click', () => switchToolCategory('system'));
+    document.getElementById('show-visual-tools-btn').addEventListener('click', () => switchToolCategory('visual'));
+
 
     // --- Project Plan Timeline & Deliverables ---
     const timelineContainer = document.getElementById('timeline-container');
@@ -770,8 +1118,19 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderTimeline() {
         if(!timelineContainer) return;
         timelineContainer.innerHTML = '';
+
+        if (projectPhases.length === 0) {
+            timelineContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No project phases defined.</p>';
+            return;
+        }
+        
         const totalDuration = projectPhases.reduce((acc, p) => acc + p.duration, 0);
         let cumulativeDuration = 0;
+
+        const fullLine = document.createElement('div');
+        fullLine.className = 'absolute h-1 bg-gray-300 top-1/2 left-0 right-0 -translate-y-1/2 rounded-full';
+        timelineContainer.appendChild(fullLine);
+
         projectPhases.forEach((phase, index) => {
             if (phase.duration === 0) return;
             const leftPosition = (cumulativeDuration / totalDuration) * 100;
@@ -796,7 +1155,62 @@ document.addEventListener('DOMContentLoaded', function() {
             timelineContainer.appendChild(label);
             cumulativeDuration += phase.duration;
         });
+
+        const endNode = document.createElement('button');
+        endNode.className = 'timeline-node absolute w-6 h-6 rounded-full bg-white border-2 border-gray-500 top-1/2 -translate-y-1/2 -translate-x-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500';
+        endNode.style.left = `100%`;
+        endNode.title = currentLanguage === 'pt' ? 'Fim do Projeto' : 'Project End';
+
+        const endLabel = document.createElement('span');
+        endLabel.className = 'absolute top-full mt-2 -translate-x-1/2 text-sm text-center w-24';
+        endLabel.style.left = `100%`;
+        endLabel.innerText = currentLanguage === 'pt' ? 'Fim' : 'End';
+
+        timelineContainer.appendChild(endNode);
+        timelineContainer.appendChild(endLabel);
+
+        timelineContainer.removeEventListener('click', handleTimelineNodeClick);
+        timelineContainer.addEventListener('click', handleTimelineNodeClick);
     }
+
+    function handleTimelineNodeClick(e) {
+        const node = e.target.closest('.timeline-node');
+        if (!node || node.dataset.index === undefined) return;
+        
+        const index = parseInt(node.dataset.index, 10);
+        const phase = projectPhases[index];
+        const phaseName = currentLanguage === 'pt' ? phase.name_pt : phase.name;
+        const phaseDetails = currentLanguage === 'pt' ? (phase.details_pt || phase.details) : phase.details;
+        const weeksText = currentLanguage === 'pt' ? 'semanas' : 'weeks';
+        const addEditText = i18n[currentLanguage].add_edit_comment_btn;
+        const placeholderText = i18n[currentLanguage].comment_placeholder.replace('{phaseName}', phaseName);
+        const deliverablesTitle = i18n[currentLanguage].deliverables_for_phase;
+
+        let deliverablesHtml = allDeliverables.map((d, i) => {
+            const isChecked = phase.deliverables.includes(d);
+            return `<div class="flex items-center">
+                        <input id="phase-deliverable-${index}-${i}" type="checkbox" data-phase-index="${index}" data-deliverable="${d}" class="phase-deliverable-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${isChecked ? 'checked' : ''}>
+                        <label for="phase-deliverable-${index}-${i}" class="ml-3 block text-sm font-medium text-gray-700">${d}</label>
+                    </div>`;
+        }).join('');
+
+        phaseDetailsContainer.innerHTML = `
+            <h4 class="font-bold">${phaseName} (${phase.duration} ${weeksText})</h4>
+            <p>${phaseDetails}</p>
+            <div class="mt-4">
+                <h5 class="font-semibold text-sm mb-2">${deliverablesTitle}</h5>
+                <div class="space-y-2 no-print">${deliverablesHtml}</div>
+            </div>
+            <div class="mt-4">
+                <button class="toggle-comment-btn btn btn-secondary btn-sm py-1 px-2 no-print" data-index="${index}">${addEditText}</button>
+                <div class="comment-container hidden mt-2">
+                    <textarea class="phase-comment-textarea input-field h-24" data-index="${index}" placeholder="${placeholderText}">${phase.comments || ''}</textarea>
+                </div>
+            </div>`;
+        phaseDetailsContainer.classList.remove('hidden');
+    }
+
+
     function renderDeliverablesChecklist() {
         if(!deliverablesChecklist) return;
         deliverablesChecklist.innerHTML = '';
@@ -804,9 +1218,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const div = document.createElement('div');
             div.className = 'flex items-center justify-between bg-gray-50 p-2 rounded-md';
             div.innerHTML = `
-                <div class="flex items-center">
-                    <label for="deliverable-main-${index}" class="ml-3 block text-sm font-medium text-gray-700">${deliverable}</label>
-                </div>
+                <span class="ml-3 block text-sm font-medium text-gray-700">${deliverable}</span>
                 <button class="delete-deliverable-btn text-gray-400 hover:text-red-500 no-print" data-index="${index}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>`;
@@ -825,50 +1237,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const deleteBtn = e.target.closest('.delete-deliverable-btn');
         if (deleteBtn) {
             const index = parseInt(deleteBtn.dataset.index, 10);
+            const deliverableToRemove = allDeliverables[index];
             allDeliverables.splice(index, 1);
+            // Also remove from any phase that has it
+            projectPhases.forEach(phase => {
+                phase.deliverables = phase.deliverables.filter(d => d !== deliverableToRemove);
+            });
             renderDeliverablesChecklist();
         }
     });
-    if(timelineContainer) timelineContainer.addEventListener('click', (e) => {
-        const node = e.target.closest('.timeline-node');
-        if (!node) return;
-        const index = node.dataset.index;
-        const phase = projectPhases[index];
-        const phaseName = currentLanguage === 'pt' ? phase.name_pt : phase.name;
-        const phaseDetails = currentLanguage === 'pt' ? (phase.details_pt || phase.details) : phase.details;
-        const weeksText = currentLanguage === 'pt' ? 'semanas' : 'weeks';
-        const addEditText = i18n[currentLanguage].add_edit_comment_btn;
-        const placeholderText = i18n[currentLanguage].comment_placeholder.replace('{phaseName}', phaseName);
-
-        let deliverablesHtml = allDeliverables.map((d, i) => {
-            const isChecked = phase.deliverables.includes(d);
-            return `<div class="flex items-center">
-                        <input id="phase-deliverable-${index}-${i}" type="checkbox" data-deliverable="${d}" class="phase-deliverable-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${isChecked ? 'checked' : ''}>
-                        <label for="phase-deliverable-${index}-${i}" class="ml-3 block text-sm font-medium text-gray-700">${d}</label>
-                    </div>`;
-        }).join('');
-
-        phaseDetailsContainer.innerHTML = `
-            <h4 class="font-bold">${phaseName} (${phase.duration} ${weeksText})</h4>
-            <p>${phaseDetails}</p>
-            <div class="mt-4">
-                <h5 class="font-semibold text-sm mb-2">Deliverables for this Phase</h5>
-                <div class="space-y-2 no-print">${deliverablesHtml}</div>
-            </div>
-            <div class="mt-4">
-                <button class="toggle-comment-btn btn btn-secondary btn-sm py-1 px-2 no-print" data-index="${index}">${addEditText}</button>
-                <div class="comment-container hidden mt-2">
-                    <textarea class="phase-comment-textarea input-field h-24" data-index="${index}" placeholder="${placeholderText}">${phase.comments || ''}</textarea>
-                </div>
-            </div>`;
-        phaseDetailsContainer.classList.remove('hidden');
-    });
     if(phaseDetailsContainer) phaseDetailsContainer.addEventListener('change', (e) => {
         if(e.target.classList.contains('phase-deliverable-checkbox')) {
-            const phaseIndex = e.target.id.split('-')[2];
+            const phaseIndex = e.target.dataset.phaseIndex;
             const deliverable = e.target.dataset.deliverable;
             if(e.target.checked) {
-                projectPhases[phaseIndex].deliverables.push(deliverable);
+                if (!projectPhases[phaseIndex].deliverables.includes(deliverable)) {
+                    projectPhases[phaseIndex].deliverables.push(deliverable);
+                }
             } else {
                 projectPhases[phaseIndex].deliverables = projectPhases[phaseIndex].deliverables.filter(d => d !== deliverable);
             }
@@ -885,14 +1270,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- SIPOC Diagram ---
-    const sipocContainer = document.querySelector('#sipoc .grid');
+    const sipocGrid = document.getElementById('sipoc-grid');
     function renderSipoc() {
-        if (!sipocContainer) return;
-        sipocContainer.innerHTML = '';
+        if (!sipocGrid) return;
+        sipocGrid.innerHTML = '';
         Object.keys(sipocData).forEach(key => {
             const column = document.createElement('div');
             column.className = 'bg-gray-50 p-3 rounded-lg';
-            let itemsHtml = sipocData[key].map(item => `<li>${item}</li>`).join('');
+            let itemsHtml = sipocData[key].map((item, index) => `
+                <li class="flex items-center justify-between">
+                    <span>${item}</span>
+                    <button class="remove-sipoc-item-btn remove-btn-sm no-print" data-column="${key}" data-index="${index}">&times;</button>
+                </li>`).join('');
             column.innerHTML = `
                 <h4 class="font-bold text-center mb-2">${key}</h4>
                 <ul class="list-disc list-inside space-y-1">${itemsHtml}</ul>
@@ -901,10 +1290,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button class="sipoc-add-btn btn btn-primary btn-sm p-1" data-column="${key}">+</button>
                 </div>
             `;
-            sipocContainer.appendChild(column);
+            sipocGrid.appendChild(column);
         });
     }
-    sipocContainer?.addEventListener('click', e => {
+    sipocGrid?.addEventListener('click', e => {
         if (e.target.classList.contains('sipoc-add-btn')) {
             const column = e.target.dataset.column;
             const input = e.target.previousElementSibling;
@@ -914,23 +1303,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderSipoc();
             }
         }
+        if (e.target.classList.contains('remove-sipoc-item-btn')) {
+            const column = e.target.dataset.column;
+            const index = e.target.dataset.index;
+            sipocData[column].splice(index, 1);
+            renderSipoc();
+        }
     });
 
     // --- RASCI Matrix ---
     const rasciTable = document.getElementById('rasci-table');
     function renderRasci() {
         if (!rasciTable) return;
-        let headHtml = '<thead><tr class="bg-gray-100"><th>Task</th>';
-        rasciData.roles.forEach(role => headHtml += `<th>${role}</th>`);
-        headHtml += '</tr></thead>';
-
-        let bodyHtml = '<tbody>';
+        rasciTable.innerHTML = ''; // Clear table
+        const thead = document.createElement('thead');
+        thead.innerHTML = `<tr class="bg-gray-100">
+            <th class="p-2 border sticky left-0 bg-gray-100 z-10">Task</th>
+            ${rasciData.roles.map((role, index) => `
+                <th class="p-2 border whitespace-nowrap">
+                    <div class="flex justify-between items-center">
+                        <span>${role}</span>
+                        <button class="remove-rasci-role-btn remove-btn-sm no-print ml-2" data-index="${index}">&times;</button>
+                    </div>
+                </th>
+            `).join('')}
+        </tr>`;
+        
+        const tbody = document.createElement('tbody');
         rasciData.tasks.forEach((task, taskIndex) => {
-            bodyHtml += `<tr><td class="font-medium p-2 border">${task.name}</td>`;
-            rasciData.roles.forEach((role, roleIndex) => {
+            const row = document.createElement('tr');
+            let taskCellHtml = `
+                <td class="font-medium p-2 border sticky left-0 bg-white z-10">
+                    <div class="flex justify-between items-center">
+                        <span>${task.name}</span>
+                        <button class="remove-rasci-task-btn remove-btn-sm no-print" data-index="${taskIndex}">&times;</button>
+                    </div>
+                </td>`;
+            
+            let roleCellsHtml = rasciData.roles.map(role => {
                 const assignment = task.assignments[role] || '-';
-                bodyHtml += `<td class="p-2 border text-center">
-                    <select class="rasci-select input-field text-sm p-1" data-task="${taskIndex}" data-role="${role}">
+                return `<td class="p-2 border text-center">
+                    <select class="rasci-select input-field text-sm p-1 no-print" data-task-index="${taskIndex}" data-role="${role}">
                         <option value="-" ${assignment === '-' ? 'selected' : ''}>-</option>
                         <option value="R" ${assignment === 'R' ? 'selected' : ''}>R</option>
                         <option value="A" ${assignment === 'A' ? 'selected' : ''}>A</option>
@@ -938,18 +1351,39 @@ document.addEventListener('DOMContentLoaded', function() {
                         <option value="C" ${assignment === 'C' ? 'selected' : ''}>C</option>
                         <option value="I" ${assignment === 'I' ? 'selected' : ''}>I</option>
                     </select>
+                    <span class="print-only hidden">${assignment}</span>
                 </td>`;
-            });
-            bodyHtml += '</tr>';
+            }).join('');
+
+            row.innerHTML = taskCellHtml + roleCellsHtml;
+            tbody.appendChild(row);
         });
-        bodyHtml += '</tbody>';
-        rasciTable.innerHTML = headHtml + bodyHtml;
+
+        rasciTable.appendChild(thead);
+        rasciTable.appendChild(tbody);
     }
     rasciTable?.addEventListener('change', e => {
         if (e.target.classList.contains('rasci-select')) {
-            const taskIndex = e.target.dataset.task;
+            const taskIndex = e.target.dataset.taskIndex;
             const role = e.target.dataset.role;
             rasciData.tasks[taskIndex].assignments[role] = e.target.value;
+        }
+    });
+     rasciTable?.addEventListener('click', e => {
+        const removeTaskBtn = e.target.closest('.remove-rasci-task-btn');
+        if (removeTaskBtn) {
+            rasciData.tasks.splice(removeTaskBtn.dataset.index, 1);
+            renderRasci();
+        }
+        const removeRoleBtn = e.target.closest('.remove-rasci-role-btn');
+        if (removeRoleBtn) {
+            const roleIndex = removeRoleBtn.dataset.index;
+            const roleToRemove = rasciData.roles[roleIndex];
+            rasciData.roles.splice(roleIndex, 1);
+            rasciData.tasks.forEach(task => {
+                delete task.assignments[roleToRemove];
+            });
+            renderRasci();
         }
     });
     document.getElementById('add-rasci-task-btn')?.addEventListener('click', () => {
@@ -1035,8 +1469,12 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSignaturePad('signature-pad-2');
     
     // --- AI Features ---
-    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=AIzaSyBedy6zC_tekcYYeUygHia5Mq39-lJgIao`;
+    const geminiApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=`; // Add your API Key here
     async function callGemini(prompt, button, statusEl, outputEl) {
+        if (!geminiApiUrl.endsWith('key=')) {
+            alert("Gemini API key is not configured. Please add it to the script.");
+            return;
+        }
         statusEl.textContent = 'Gathering information...';
         button.disabled = true;
         const originalButtonText = button.innerHTML;
@@ -1081,34 +1519,64 @@ document.addEventListener('DOMContentLoaded', function() {
         callGemini(prompt, document.getElementById('suggest-plan-btn'), document.getElementById('plan-ai-status'), document.getElementById('ai-plan-textarea'));
     });
 
-    // --- Image Upload ---
-    const dropZone = document.getElementById('image-drop-zone');
-    const imageUploadInput = document.getElementById('image-upload-input');
-    const imagePreviewContainer = document.getElementById('image-preview-container');
-    const imagePlaceholder = document.getElementById('image-placeholder');
-    if(dropZone) dropZone.addEventListener('click', () => imageUploadInput.click());
-    if(imageUploadInput) imageUploadInput.addEventListener('change', (e) => handleFiles(e.target.files));
-    if(dropZone) {
+    // --- Image Upload (Generalized) ---
+    function setupImageUpload(category, dropZoneId, inputId, previewContainerId) {
+        const dropZone = document.getElementById(dropZoneId);
+        const input = document.getElementById(inputId);
+        const previewContainer = document.getElementById(previewContainerId);
+
+        if (!dropZone || !input || !previewContainer) return;
+
+        dropZone.addEventListener('click', () => input.click());
+        input.addEventListener('change', (e) => handleFiles(e.target.files, category, previewContainerId));
+        
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-blue-500', 'bg-blue-50'); });
         dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500', 'bg-blue-50'); });
-        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500', 'bg-blue-50'); handleFiles(e.dataTransfer.files); });
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('border-blue-500', 'bg-blue-50'); handleFiles(e.dataTransfer.files, category, previewContainerId); });
     }
-    function handleFiles(files) {
-        if(imagePlaceholder) imagePlaceholder.style.display = 'none';
+
+    function handleFiles(files, category, previewContainerId) {
         for (const file of files) {
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const imgContainer = document.createElement('div');
-                    imgContainer.className = 'relative';
-                    imgContainer.innerHTML = `<img src="${e.target.result}" class="max-h-48 rounded-lg shadow-md"><button class="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold opacity-75 hover:opacity-100 no-print">&times;</button>`;
-                    imagePreviewContainer.appendChild(imgContainer);
-                    imgContainer.querySelector('button').addEventListener('click', () => imgContainer.remove());
+                    const base64String = e.target.result;
+                    uploadedImages[category].push(base64String);
+                    renderImagePreviews(category, previewContainerId);
                 };
                 reader.readAsDataURL(file);
             }
         }
     }
+
+    function renderImagePreviews(category, previewContainerId) {
+        const previewContainer = document.getElementById(previewContainerId);
+        previewContainer.innerHTML = '';
+        uploadedImages[category].forEach((base64String, index) => {
+            const item = document.createElement('div');
+            item.className = 'image-preview-item';
+            item.innerHTML = `
+                <img src="${base64String}" alt="Preview ${index + 1}">
+                <button class="remove-image-btn no-print" data-category="${category}" data-index="${index}">&times;</button>
+            `;
+            previewContainer.appendChild(item);
+        });
+    }
+
+    document.body.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-image-btn')) {
+            const category = e.target.dataset.category;
+            const index = parseInt(e.target.dataset.index, 10);
+            uploadedImages[category].splice(index, 1);
+            const containerId = e.target.closest('.image-preview-grid').id;
+            renderImagePreviews(category, containerId);
+        }
+    });
+
+    setupImageUpload('general', 'general-image-drop-zone', 'general-image-upload-input', 'general-image-preview-container');
+    setupImageUpload('currentSystem', 'current-system-image-drop-zone', 'current-system-image-upload-input', 'current-system-image-preview-container');
+    setupImageUpload('proposedSystem', 'proposed-system-image-drop-zone', 'proposed-system-image-upload-input', 'proposed-system-image-preview-container');
+
 
     // --- Export and Print Functionality ---
     const exportBtn = document.getElementById('export-btn');
@@ -1130,66 +1598,51 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     async function prepareForExport() {
-        const exportContainer = document.createElement('div');
+        // Create a clone of the main content to manipulate for export
+        const exportContainer = document.getElementById('main-content').cloneNode(true);
         
-        const headerClone = document.querySelector('.page-header').cloneNode(true);
-        headerClone.querySelectorAll('.no-print').forEach(el => el.remove());
-        exportContainer.appendChild(headerClone);
+        // Remove all non-printable elements
+        exportContainer.querySelectorAll('.no-print').forEach(el => el.remove());
+        
+        // Replace all input fields with their static values
+        exportContainer.querySelectorAll('input[type="text"], input[type="date"], input[type="number"], textarea').forEach(el => {
+            const p = document.createElement('p');
+            p.className = 'text-gray-800 p-2 border border-gray-200 rounded-md bg-gray-50';
+            p.style.whiteSpace = 'pre-wrap'; // Preserve line breaks from textareas
+            p.textContent = el.value || '(Not specified)';
+            el.parentNode.replaceChild(p, el);
+        });
 
-        const sections = document.querySelectorAll('.content-section');
-        for (const section of sections) {
-            const sectionClone = section.cloneNode(true);
-            sectionClone.querySelectorAll('.no-print').forEach(el => el.remove());
+        // Replace RASCI dropdowns with their selected text value
+        exportContainer.querySelectorAll('.rasci-select').forEach(select => {
+            const cell = select.parentNode;
+            cell.textContent = select.value;
+            cell.style.textAlign = 'center';
+        });
 
-            // Replace inputs/textareas with their values and labels
-            sectionClone.querySelectorAll('input, textarea').forEach(el => {
-                if (el.type === 'file' || el.type === 'range' || el.type === 'checkbox' || el.classList.contains('no-print')) {
-                    el.parentNode.removeChild(el);
-                    return;
-                }
-                const p = document.createElement('div');
-                p.style.marginTop = '1rem';
-                p.style.marginBottom = '1rem';
-                let labelText = '';
-                const label = document.querySelector(`label[for="${el.id}"]`) || el.closest('div').querySelector('label');
-                if (label) {
-                    labelText = `<strong style="font-weight: bold;">${label.textContent}:</strong><br/>`;
-                }
-                p.innerHTML = `${labelText}${el.value.replace(/\n/g, '<br>') || '&nbsp;'}`;
-                el.parentNode.replaceChild(p, el);
-            });
+        // Convert all canvas elements (charts, signatures) to images
+        const canvasElements = document.querySelectorAll('#main-content canvas');
+        const exportCanvasElements = exportContainer.querySelectorAll('canvas');
 
-             // Convert canvases to images
-            const canvasElements = sectionClone.querySelectorAll('canvas');
-            for(const canvasEl of canvasElements) {
-                const img = document.createElement('img');
-                const originalCanvas = document.getElementById(canvasEl.id);
-                if(originalCanvas) {
-                    img.src = originalCanvas.toDataURL('image/png');
-                    img.style.width = '100%';
-                    img.style.border = '1px solid #ccc';
-                    img.style.borderRadius = '8px';
-                    canvasEl.parentNode.replaceChild(img, canvasEl);
-                }
-            }
-
-            // Ensure timeline comments are visible
-            sectionClone.querySelectorAll('.comment-container.hidden').forEach(c => {
-                c.classList.remove('hidden');
-            });
+        for(let i = 0; i < canvasElements.length; i++) {
+            const originalCanvas = canvasElements[i];
+            const exportCanvas = exportCanvasElements[i];
             
-            exportContainer.appendChild(sectionClone);
+            const img = document.createElement('img');
+            img.src = originalCanvas.toDataURL('image/png', 1.0);
+            img.style.width = '100%';
+            img.style.maxWidth = '600px'; 
+            img.style.border = '1px solid #ddd';
+            img.style.borderRadius = '8px';
+            img.style.marginTop = '1rem';
+            if (exportCanvas.parentNode) {
+                exportCanvas.parentNode.replaceChild(img, exportCanvas);
+            }
         }
-
+        
         return exportContainer;
     }
 
-    window.addEventListener('beforeprint', () => {
-        document.querySelectorAll('.no-print').forEach(el => el.style.display = 'none');
-    });
-    window.addEventListener('afterprint', () => {
-        document.querySelectorAll('.no-print').forEach(el => el.style.display = '');
-    });
     if(printBtn) printBtn.addEventListener('click', () => window.print());
     
     if(downloadPdfBtn) downloadPdfBtn.addEventListener('click', async () => {
@@ -1202,41 +1655,39 @@ document.addEventListener('DOMContentLoaded', function() {
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
             const margin = 10;
+            const contentWidth = pdfWidth - margin * 2;
             let y = margin;
 
-            const addCanvasToPdf = async (element) => {
-                const canvas = await html2canvas(element, { scale: 2, useCORS: true, logging: false });
-                const imgData = canvas.toDataURL('image/png');
+            const sectionsToExport = document.querySelectorAll('#main-content .content-section');
+
+            for (let i = 0; i < sectionsToExport.length; i++) {
+                const section = sectionsToExport[i];
+                pdfProgress.textContent = `Processing section ${i + 1} of ${sectionsToExport.length}...`;
+                
+                const canvas = await html2canvas(section, { 
+                    scale: 2, 
+                    useCORS: true, 
+                    logging: false,
+                    onclone: (doc) => {
+                        // Ensure all elements are visible for rendering
+                        doc.querySelectorAll('.hidden').forEach(el => el.classList.remove('hidden'));
+                    }
+                });
+
+                const imgData = canvas.toDataURL('image/png', 1.0);
                 const imgProps = pdf.getImageProperties(imgData);
-                const imgHeight = (imgProps.height * (pdfWidth - margin * 2)) / imgProps.width;
+                const imgHeight = (imgProps.height * contentWidth) / imgProps.width;
 
                 if (y + imgHeight > pdfHeight - margin) {
                     pdf.addPage();
                     y = margin;
                 }
-                pdf.addImage(imgData, 'PNG', margin, y, pdfWidth - margin * 2, imgHeight);
-                y += imgHeight + 5;
-            };
 
-            const exportContainer = await prepareForExport();
-            document.body.appendChild(exportContainer);
-            exportContainer.style.position = 'absolute';
-            exportContainer.style.left = '-9999px';
-            exportContainer.style.width = '800px'; 
-
-            const header = exportContainer.querySelector('.page-header');
-            if (header) {
-                await addCanvasToPdf(header);
-            }
-
-            const sections = exportContainer.querySelectorAll('.content-section');
-            for (let i = 0; i < sections.length; i++) {
-                pdfProgress.textContent = `Processing section ${i + 1} of ${sections.length}...`;
-                await addCanvasToPdf(sections[i]);
+                pdf.addImage(imgData, 'PNG', margin, y, contentWidth, imgHeight);
+                y += imgHeight + 10; // Add some spacing between sections
             }
             
-            pdf.save('Project-Proposal.pdf');
-            document.body.removeChild(exportContainer);
+            pdf.save(`${document.getElementById('project-title-input').value || 'Project-Proposal'}.pdf`);
 
         } catch (err) {
             console.error("Error generating PDF:", err);
@@ -1254,25 +1705,37 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML to Word</title></head><body>";
         const footer = "</body></html>";
-        const sourceHTML = header + exportContainer.innerHTML + footer;
+        const styles = `
+            <style>
+                body { font-family: Calibri, sans-serif; font-size: 11pt; }
+                h2 { font-size: 16pt; color: #2E74B5; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 20px; }
+                h3 { font-size: 14pt; color: #333; margin-top: 15px; }
+                p, li { font-size: 11pt; line-height: 1.5; }
+                table { border-collapse: collapse; width: 100%; }
+                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; }
+                img { max-width: 100%; height: auto; }
+            </style>
+        `;
+        const sourceHTML = header + styles + exportContainer.innerHTML + footer;
         
         const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
         const fileDownload = document.createElement("a");
         document.body.appendChild(fileDownload);
         fileDownload.href = source;
-        fileDownload.download = 'Project-Proposal.doc';
+        fileDownload.download = `${document.getElementById('project-title-input').value || 'Project-Proposal'}.doc`;
         fileDownload.click();
         document.body.removeChild(fileDownload);
     });
     
     // --- Initial Setup Calls ---
+    newProject(); 
     setLanguage('en');
     setActiveLink();
-    renderToolSection();
-    renderSipoc();
-    renderRasci();
-    updateCostChart();
+    updateProjectList();
+    switchToolCategory('system');
     window.addEventListener('scroll', setActiveLink);
+
 });
 </script>
 
